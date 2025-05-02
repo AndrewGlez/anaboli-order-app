@@ -1,74 +1,230 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Search, Filter, Calendar } from 'lucide-react-native';
+import { format } from 'date-fns';
+import { useOrderStore } from '@/store/orderStore';
+import OrderCard from '@/components/OrderCard';
+import FilterSheet from '@/components/FilterSheet';
+import { COLORS, FONTS, SIZES } from '@/constants/theme';
+import EmptyState from '@/components/EmptyState';
+import { es } from 'date-fns/locale';
+import { useThemeStore } from '@/store/themeStore';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+export default function OrdersScreen() {
+  const { orders } = useOrderStore();
+  const { theme } = useThemeStore();
+  const colors = COLORS.themed(theme);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [activeFilters, setActiveFilters] = useState({
+    gym: '',
+    product: '',
+    status: '',
+  });
 
-export default function HomeScreen() {
+  const today = format(new Date(), 'EEEE, MMMM d, yyyy', {
+    locale: es,
+  });
+
+  // Filter orders based on search query and active filters
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = searchQuery === '' ||
+      order.gymName.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesGymFilter = activeFilters.gym === '' ||
+      order.gymName === activeFilters.gym;
+
+    const matchesProductFilter = activeFilters.product === '' ||
+      order.products.some(p => p.type === activeFilters.product);
+
+    const matchesStatusFilter = activeFilters.status === '' ||
+      order.status === activeFilters.status;
+
+    return matchesSearch && matchesGymFilter && matchesProductFilter && matchesStatusFilter;
+  });
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <View style={styles.titleContainer}>
+          <Text style={[styles.title, { color: colors.text }]}>Ordenes</Text>
+          <Text style={[styles.subtitle, { color: colors.textLight }]}>{today}</Text>
+        </View>
+      </View>
+
+      <View style={[styles.searchContainer, { borderColor: colors.border, padding: SIZES.padding }]}>
+        <View style={[styles.searchBar, { backgroundColor: colors.white, borderColor: colors.border }]}>
+          <Search size={20} color={colors.textLight} style={styles.searchIcon} />
+          <TextInput
+            style={[styles.searchInput, { color: colors.text }]}
+            placeholder="Buscar..."
+            placeholderTextColor={colors.textLight}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+        <TouchableOpacity
+          style={[styles.filterButton, { backgroundColor: colors.primary }]}
+          onPress={() => setFilterVisible(true)}
+        >
+          <Filter size={20} color={COLORS.white} />
+        </TouchableOpacity>
+      </View>
+
+      {Object.values(activeFilters).some(filter => filter !== '') && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filtersRow}
+          contentContainerStyle={styles.filtersContent}
+        >
+          {activeFilters.gym !== '' && (
+            <View style={[styles.filterChip, { backgroundColor: colors.primary + '15' }]}>
+              <Text style={[styles.filterChipText, { color: colors.primary }]}>{activeFilters.gym}</Text>
+              <TouchableOpacity onPress={() => setActiveFilters({ ...activeFilters, gym: '' })}>
+                <Text style={[styles.filterChipRemove, { color: colors.primary }]}>×</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          {activeFilters.product !== '' && (
+            <View style={[styles.filterChip, { backgroundColor: colors.primary + '15' }]}>
+              <Text style={[styles.filterChipText, { color: colors.primary }]}>Productos: {activeFilters.product}</Text>
+              <TouchableOpacity onPress={() => setActiveFilters({ ...activeFilters, product: '' })}>
+                <Text style={[styles.filterChipRemove, { color: colors.primary }]}>×</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          {activeFilters.status !== '' && (
+            <View style={[styles.filterChip, { backgroundColor: colors.primary + '15' }]}>
+              <Text style={[styles.filterChipText, { color: colors.primary }]}>Estado: {activeFilters.status}</Text>
+              <TouchableOpacity onPress={() => setActiveFilters({ ...activeFilters, status: '' })}>
+                <Text style={[styles.filterChipRemove, { color: colors.primary }]}>×</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          {Object.values(activeFilters).some(filter => filter !== '') && (
+            <TouchableOpacity
+              style={[styles.clearFiltersButton, { borderColor: colors.error }]}
+              onPress={() => setActiveFilters({ gym: '', product: '', status: '' })}
+            >
+              <Text style={[styles.clearFiltersText, { color: colors.error }]}>Limpiar filtros</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+      )}
+
+      {filteredOrders.length > 0 ? (
+        <FlatList
+          data={filteredOrders}
+          renderItem={({ item }) => (
+            <OrderCard order={item} />
+          )}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.listContent}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      ) : (
+        <EmptyState
+          title="No se encontraron ordenes"
+          description="Intenta cambiar tus filtros o crea una nueva orden"
+          icon={<Calendar size={50} color={COLORS.textLight} />}
+        />
+      )}
+
+      <FilterSheet
+        visible={filterVisible}
+        onClose={() => setFilterVisible(false)}
+        activeFilters={activeFilters}
+        setActiveFilters={setActiveFilters}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    padding: SIZES.padding,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+  },
   titleContainer: {
+    flex: 1,
+  },
+  title: {
+    ...FONTS.h1,
+  },
+  subtitle: {
+    ...FONTS.body3,
+    marginTop: 4,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: SIZES.padding,
+    paddingBottom: SIZES.padding,
+    alignItems: 'center',
+  },
+  searchBar: {
+    flex: 1,
+    height: 46,
+    borderRadius: SIZES.radius,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    paddingHorizontal: 12,
+    borderWidth: 1,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  searchIcon: {
+    marginRight: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  searchInput: {
+    flex: 1,
+    height: '100%',
+    ...FONTS.body2,
+  },
+  filterButton: {
+    width: 46,
+    height: 46,
+    borderRadius: SIZES.radius,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  filtersRow: {
+    paddingLeft: SIZES.padding,
+    marginBottom: 10,
+  },
+  filtersContent: {
+    paddingRight: SIZES.padding,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  filterChipText: {
+    ...FONTS.body3,
+  },
+  filterChipRemove: {
+    ...FONTS.h3,
+    marginLeft: 4,
+  },
+  clearFiltersButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  clearFiltersText: {
+    ...FONTS.body3,
+  },
+  listContent: {
+    padding: SIZES.padding,
   },
 });
