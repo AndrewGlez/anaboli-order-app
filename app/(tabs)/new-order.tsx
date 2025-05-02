@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, PlusCircle, Trash2 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
-import { COLORS, FONTS, SIZES } from '@/constants/theme';
-import { useOrderStore } from '@/store/orderStore';
-import { ProductType, OrderStatus } from '@/types';
-import ProductSelector from '@/components/ProductSelector';
-import StatusSelector from '@/components/StatusSelector';
-import { useThemeStore } from '@/store/themeStore';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ArrowLeft, PlusCircle, Trash2 } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import { COLORS, FONTS, SIZES } from "@/constants/theme";
+import { useOrderStore } from "@/store/orderStore";
+import { ProductType, OrderStatus } from "@/types";
+import ProductSelector from "@/components/ProductSelector";
+import StatusSelector from "@/components/StatusSelector";
+import { useThemeStore } from "@/store/themeStore";
 
 export default function NewOrderScreen() {
   const router = useRouter();
@@ -17,16 +25,23 @@ export default function NewOrderScreen() {
 
   const colors = COLORS.themed(theme);
 
-  const [gymName, setGymName] = useState('');
-  const [products, setProducts] = useState<Array<{ type: ProductType, quantity: number }>>([]);
-  const [status, setStatus] = useState<OrderStatus>('Entregado');
-  const [notes, setNotes] = useState('');
+  const [gymName, setGymName] = useState("");
+  const [products, setProducts] = useState<
+    Array<{ type: ProductType; quantity: number }>
+  >([]);
+  const [status, setStatus] = useState<OrderStatus>("Entregado");
+  const [notes, setNotes] = useState("");
+  const [price, setPrice] = useState("");
 
   const handleAddProduct = () => {
-    setProducts([...products, { type: 'A', quantity: 1 }]);
+    setProducts([...products, { type: "A", quantity: 1 }]);
   };
 
-  const handleUpdateProduct = (index: number, type: ProductType, quantity: number) => {
+  const handleUpdateProduct = (
+    index: number,
+    type: ProductType,
+    quantity: number
+  ) => {
     const updatedProducts = [...products];
     updatedProducts[index] = { type, quantity };
     setProducts(updatedProducts);
@@ -40,12 +55,12 @@ export default function NewOrderScreen() {
 
   const handleSubmit = () => {
     if (!gymName.trim()) {
-      Alert.alert('Error', 'Por favor ingresa el nombre del gimnasio');
+      Alert.alert("Error", "Por favor ingresa el nombre del gimnasio");
       return;
     }
 
     if (products.length === 0) {
-      Alert.alert('Error', 'Por favor agrega al menos un producto');
+      Alert.alert("Error", "Por favor agrega al menos un producto");
       return;
     }
 
@@ -55,37 +70,53 @@ export default function NewOrderScreen() {
       products,
       status,
       notes,
+      ...(status === "Entregado + P" ? { price: parseFloat(price) } : {}),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
     addOrder(newOrder);
-    Alert.alert('Éxito', 'Orden creada con éxito');
+    Alert.alert("Éxito", "Orden creada con éxito");
 
     // Reset form
-    setGymName('');
+    setGymName("");
     setProducts([]);
-    setStatus('Entregado');
-    setNotes('');
+    setStatus("Entregado");
+    setNotes("");
+    setPrice("");
 
     // Navigate back to orders
-    router.push('/');
+    router.push("/");
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Crear nueva orden</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          Crear nueva orden
+        </Text>
       </View>
 
       <ScrollView style={styles.form}>
         <View style={styles.formGroup}>
           <Text style={[styles.label, { color: colors.text }]}>Nombre</Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.white,
+                borderColor: colors.border,
+                color: colors.text,
+              },
+            ]}
             value={gymName}
             onChangeText={setGymName}
             placeholder="Ingresa el nombre del gym"
@@ -96,13 +127,25 @@ export default function NewOrderScreen() {
         <View style={styles.formGroup}>
           <Text style={[styles.label, { color: colors.text }]}>Productos</Text>
           {products.map((product, index) => (
-            <View key={index} style={[styles.productRow, { borderColor: colors.primary }]}>
+            <View
+              key={index}
+              style={[styles.productRow, { borderColor: colors.primary }]}
+            >
               <ProductSelector
                 value={product.type}
-                onChange={(type) => handleUpdateProduct(index, type, product.quantity)}
+                onChange={(type) =>
+                  handleUpdateProduct(index, type, product.quantity)
+                }
               />
               <TextInput
-                style={[styles.quantityInput, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+                style={[
+                  styles.quantityInput,
+                  {
+                    backgroundColor: colors.white,
+                    borderColor: colors.border,
+                    color: colors.text,
+                  },
+                ]}
                 value={product.quantity.toString()}
                 onChangeText={(text) => {
                   const quantity = parseInt(text) || 0;
@@ -119,9 +162,14 @@ export default function NewOrderScreen() {
             </View>
           ))}
 
-          <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.primary }]} onPress={handleAddProduct}>
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: colors.primary }]}
+            onPress={handleAddProduct}
+          >
             <PlusCircle size={20} color={colors.white} />
-            <Text style={[styles.addButtonText, { color: colors.white }]}>Agregar Productos</Text>
+            <Text style={[styles.addButtonText, { color: colors.white }]}>
+              Agregar Productos
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -131,9 +179,36 @@ export default function NewOrderScreen() {
         </View>
 
         <View style={styles.formGroup}>
+          <Text style={[styles.label, { color: colors.text }]}>Precio</Text>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.white,
+                borderColor: colors.border,
+                color: colors.text,
+              },
+            ]}
+            value={price}
+            onChangeText={setPrice}
+            placeholder="Ingresa el precio"
+            placeholderTextColor={colors.textLight}
+            keyboardType="numeric"
+          />
+        </View>
+
+        <View style={styles.formGroup}>
           <Text style={[styles.label, { color: colors.text }]}>Notas</Text>
           <TextInput
-            style={[styles.input, styles.notesInput, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+            style={[
+              styles.input,
+              styles.notesInput,
+              {
+                backgroundColor: colors.white,
+                borderColor: colors.border,
+                color: colors.text,
+              },
+            ]}
             value={notes}
             onChangeText={setNotes}
             placeholder="Agrega notas adicionales"
@@ -146,8 +221,13 @@ export default function NewOrderScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { borderTopColor: colors.border }]}>
-        <TouchableOpacity style={[styles.submitButton, { backgroundColor: colors.primary }]} onPress={handleSubmit}>
-          <Text style={[styles.submitButtonText, { color: colors.white }]}>Crear Orden</Text>
+        <TouchableOpacity
+          style={[styles.submitButton, { backgroundColor: colors.primary }]}
+          onPress={handleSubmit}
+        >
+          <Text style={[styles.submitButtonText, { color: colors.white }]}>
+            Crear Orden
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -159,8 +239,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: SIZES.padding,
     borderBottomWidth: 1,
   },
@@ -192,8 +272,8 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   productRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 10,
   },
   quantityInput: {
@@ -203,17 +283,17 @@ const styles = StyleSheet.create({
     padding: 12,
     marginHorizontal: 10,
     ...FONTS.body2,
-    textAlign: 'center',
+    textAlign: "center",
   },
   removeButton: {
     padding: 8,
   },
   addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderRadius: SIZES.radius,
     padding: 12,
-    justifyContent: 'center',
+    justifyContent: "center",
     marginTop: 10,
   },
   addButtonText: {
@@ -227,7 +307,7 @@ const styles = StyleSheet.create({
   submitButton: {
     borderRadius: SIZES.radius,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   submitButtonText: {
     ...FONTS.h3,

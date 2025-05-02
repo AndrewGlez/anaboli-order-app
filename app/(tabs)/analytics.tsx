@@ -76,6 +76,11 @@ export default function AnalyticsScreen() {
     {}
   );
 
+  // Calculate total price from Entregado + P orders
+  const totalPrice = filteredOrders
+    .filter((order) => order.status === "Entregado + P" && order.price)
+    .reduce((acc, order) => acc + (order.price || 0), 0);
+
   const handleExportImage = async () => {
     if (analyticsRef.current) {
       try {
@@ -117,6 +122,10 @@ export default function AnalyticsScreen() {
         "Total Productos:",
         Object.values(productsByType).reduce((a, b) => a + b, 0),
       ]);
+      wsData.push([
+        "Total Pagado (Entregado + P):",
+        `$${totalPrice.toFixed(2)}`,
+      ]);
       wsData.push([]);
 
       // Products summary
@@ -128,19 +137,37 @@ export default function AnalyticsScreen() {
       wsData.push(["Ketos (K)", productsByType.K]);
       wsData.push([]);
 
-      // Status summary
+      // Status summary with prices
       wsData.push(["ESTADO DE ORDENES"]);
-      wsData.push(["Estado", "Cantidad"]);
+      wsData.push(["Estado", "Cantidad", "Total Pagado"]);
       Object.entries(ordersByStatus)
         .sort(([a], [b]) => a.localeCompare(b))
         .forEach(([status, count]) => {
-          wsData.push([status, count]);
+          const statusPrice =
+            status === "Entregado + P"
+              ? filteredOrders
+                  .filter((order) => order.status === status && order.price)
+                  .reduce((acc, order) => acc + (order.price || 0), 0)
+              : 0;
+          wsData.push([
+            status,
+            count,
+            status === "Entregado + P" ? `$${statusPrice.toFixed(2)}` : "-",
+          ]);
         });
       wsData.push([]);
 
       // Detailed orders section
       wsData.push(["DETALLE DE ORDENES"]);
-      wsData.push(["Gym", "Fecha", "Estado", "Producto", "Cantidad", "Notas"]);
+      wsData.push([
+        "Gym",
+        "Fecha",
+        "Estado",
+        "Producto",
+        "Cantidad",
+        "Precio",
+        "Notas",
+      ]);
 
       // Sort orders by date and gym
       const sortedOrders = [...filteredOrders].sort((a, b) => {
@@ -172,6 +199,9 @@ export default function AnalyticsScreen() {
             order.status,
             productName,
             product.quantity,
+            order.status === "Entregado + P" && order.price
+              ? `$${order.price.toFixed(2)}`
+              : "-",
             order.notes || "",
           ]);
         });
@@ -187,6 +217,7 @@ export default function AnalyticsScreen() {
         { wch: 15 }, // Status
         { wch: 15 }, // Product
         { wch: 10 }, // Quantity
+        { wch: 10 }, // Price
         { wch: 30 }, // Notes
       ];
 
@@ -353,6 +384,12 @@ export default function AnalyticsScreen() {
                 </Text>
                 <Text style={[styles.statLabel, { color: colors.textLight }]}>
                   Productos totales
+                </Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>${totalPrice.toFixed(2)}</Text>
+                <Text style={[styles.statLabel, { color: colors.textLight }]}>
+                  Total pagado
                 </Text>
               </View>
             </View>

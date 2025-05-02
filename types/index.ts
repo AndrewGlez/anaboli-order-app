@@ -13,6 +13,7 @@ export interface Order {
   products: Product[];
   status: OrderStatus;
   notes?: string;
+  price?: number;
   createdAt: string;
   updatedAt: string;
 }
