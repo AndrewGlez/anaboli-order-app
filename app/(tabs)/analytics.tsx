@@ -77,9 +77,10 @@ export default function AnalyticsScreen() {
   );
 
   // Calculate total price from Entregado + P orders
-  const totalPrice = filteredOrders
-    .filter((order) => order.status === "Entregado + P" && order.price)
-    .reduce((acc, order) => acc + (order.price || 0), 0);
+  const totalPrice = filteredOrders.reduce(
+    (acc, order) => acc + (order.price || 0),
+    0
+  );
 
   const handleExportImage = async () => {
     if (analyticsRef.current) {
@@ -143,16 +144,13 @@ export default function AnalyticsScreen() {
       Object.entries(ordersByStatus)
         .sort(([a], [b]) => a.localeCompare(b))
         .forEach(([status, count]) => {
-          const statusPrice =
-            status === "Entregado + P"
-              ? filteredOrders
-                  .filter((order) => order.status === status && order.price)
-                  .reduce((acc, order) => acc + (order.price || 0), 0)
-              : 0;
+          const statusPrice = filteredOrders
+            .filter((order) => order.status === status && order.price)
+            .reduce((acc, order) => acc + (order.price || 0), 0);
           wsData.push([
             status,
             count,
-            status === "Entregado + P" ? `$${statusPrice.toFixed(2)}` : "-",
+            statusPrice > 0 ? `$${statusPrice.toFixed(2)}` : "-",
           ]);
         });
       wsData.push([]);
@@ -199,9 +197,7 @@ export default function AnalyticsScreen() {
             order.status,
             productName,
             product.quantity,
-            order.status === "Entregado + P" && order.price
-              ? `$${order.price.toFixed(2)}`
-              : "-",
+            order.price ? `$${order.price.toFixed(2)}` : "-",
             order.notes || "",
           ]);
         });
@@ -288,7 +284,12 @@ export default function AnalyticsScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View
+        style={[
+          styles.header,
+          { borderBottomColor: colors.border, paddingBottom: 0 },
+        ]}
+      >
         <Text style={[styles.title, { color: colors.text }]}>Análisis</Text>
         <View style={styles.timeFrameContainer}>
           <TouchableOpacity
@@ -339,11 +340,16 @@ export default function AnalyticsScreen() {
               Mes
             </Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.exportButton, { backgroundColor: colors.primary }]}
+            onPress={handleExport}
+          >
+            <Share2 size={20} color={COLORS.white} />
+            <Text style={[styles.exportButtonText, { color: colors.text }]}>
+              Exportar
+            </Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.exportButton} onPress={handleExport}>
-          <Share2 size={20} color={COLORS.primary} />
-          <Text style={styles.exportButtonText}>Exportar</Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.contentContainer}>
@@ -386,12 +392,12 @@ export default function AnalyticsScreen() {
                   Productos totales
                 </Text>
               </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>${totalPrice.toFixed(2)}</Text>
-                <Text style={[styles.statLabel, { color: colors.textLight }]}>
-                  Total pagado
-                </Text>
-              </View>
+            </View>
+            <View style={[styles.statItem, { paddingTop: 24 }]}>
+              <Text style={styles.statValue}>${totalPrice.toFixed(2)}</Text>
+              <Text style={[styles.statLabel, { color: colors.textLight }]}>
+                Total pagado
+              </Text>
             </View>
           </View>
 

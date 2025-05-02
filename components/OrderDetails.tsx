@@ -65,9 +65,7 @@ export default function OrderDetails({
       status,
       products,
       notes,
-      ...(status === "Entregado + P"
-        ? { price: parseFloat(price) || 0 }
-        : { price: undefined }),
+      price: parseFloat(price),
       updatedAt: new Date().toISOString(),
     });
   };
