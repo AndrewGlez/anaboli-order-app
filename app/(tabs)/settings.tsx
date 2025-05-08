@@ -226,9 +226,6 @@ export default function SettingsScreen() {
           </Text>
           <View style={styles.aboutContainer}>
             <Info size={16} color={colors.textLight} style={styles.infoIcon} />
-            <Text style={[styles.aboutText, { color: colors.text }]}>
-              Gym Order Tracker v1.0.0
-            </Text>
           </View>
           <Text style={[styles.aboutDetails, { color: colors.textLight }]}>
             Una aplicación para gestionar tus pedidos. Desarrollada por [Andrew

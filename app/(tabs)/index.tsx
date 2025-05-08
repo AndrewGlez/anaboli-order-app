@@ -1,61 +1,97 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, Filter, Calendar } from 'lucide-react-native';
-import { format } from 'date-fns';
-import { useOrderStore } from '@/store/orderStore';
-import OrderCard from '@/components/OrderCard';
-import FilterSheet from '@/components/FilterSheet';
-import { COLORS, FONTS, SIZES } from '@/constants/theme';
-import EmptyState from '@/components/EmptyState';
-import { es } from 'date-fns/locale';
-import { useThemeStore } from '@/store/themeStore';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Search, Filter, Calendar } from "lucide-react-native";
+import { format } from "date-fns";
+import { useOrderStore } from "@/store/orderStore";
+import OrderCard from "@/components/OrderCard";
+import FilterSheet from "@/components/FilterSheet";
+import { COLORS, FONTS, SIZES } from "@/constants/theme";
+import EmptyState from "@/components/EmptyState";
+import { es } from "date-fns/locale";
+import { useThemeStore } from "@/store/themeStore";
+import UpdateButton from "@/components/UpdateButton";
 
 export default function OrdersScreen() {
   const { orders } = useOrderStore();
   const { theme } = useThemeStore();
   const colors = COLORS.themed(theme);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [filterVisible, setFilterVisible] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
-    gym: '',
-    product: '',
-    status: '',
+    gym: "",
+    product: "",
+    status: "",
   });
 
-  const today = format(new Date(), 'EEEE, MMMM d, yyyy', {
+  const today = format(new Date(), "EEEE, MMMM d, yyyy", {
     locale: es,
   });
 
   // Filter orders based on search query and active filters
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = searchQuery === '' ||
+  const filteredOrders = orders.filter((order) => {
+    const matchesSearch =
+      searchQuery === "" ||
       order.gymName.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesGymFilter = activeFilters.gym === '' ||
-      order.gymName === activeFilters.gym;
+    const matchesGymFilter =
+      activeFilters.gym === "" || order.gymName === activeFilters.gym;
 
-    const matchesProductFilter = activeFilters.product === '' ||
-      order.products.some(p => p.type === activeFilters.product);
+    const matchesProductFilter =
+      activeFilters.product === "" ||
+      order.products.some((p) => p.type === activeFilters.product);
 
-    const matchesStatusFilter = activeFilters.status === '' ||
-      order.status === activeFilters.status;
+    const matchesStatusFilter =
+      activeFilters.status === "" || order.status === activeFilters.status;
 
-    return matchesSearch && matchesGymFilter && matchesProductFilter && matchesStatusFilter;
+    return (
+      matchesSearch &&
+      matchesGymFilter &&
+      matchesProductFilter &&
+      matchesStatusFilter
+    );
   });
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={styles.titleContainer}>
+          <UpdateButton />
+
           <Text style={[styles.title, { color: colors.text }]}>Ordenes</Text>
-          <Text style={[styles.subtitle, { color: colors.textLight }]}>{today}</Text>
+          <Text style={[styles.subtitle, { color: colors.textLight }]}>
+            {today}
+          </Text>
         </View>
       </View>
 
-      <View style={[styles.searchContainer, { borderColor: colors.border, padding: SIZES.padding }]}>
-        <View style={[styles.searchBar, { backgroundColor: colors.white, borderColor: colors.border }]}>
-          <Search size={20} color={colors.textLight} style={styles.searchIcon} />
+      <View
+        style={[
+          styles.searchContainer,
+          { borderColor: colors.border, padding: SIZES.padding },
+        ]}
+      >
+        <View
+          style={[
+            styles.searchBar,
+            { backgroundColor: colors.white, borderColor: colors.border },
+          ]}
+        >
+          <Search
+            size={20}
+            color={colors.textLight}
+            style={styles.searchIcon}
+          />
           <TextInput
             style={[styles.searchInput, { color: colors.text }]}
             placeholder="Buscar..."
@@ -72,43 +108,90 @@ export default function OrdersScreen() {
         </TouchableOpacity>
       </View>
 
-      {Object.values(activeFilters).some(filter => filter !== '') && (
+      {Object.values(activeFilters).some((filter) => filter !== "") && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.filtersRow}
           contentContainerStyle={styles.filtersContent}
         >
-          {activeFilters.gym !== '' && (
-            <View style={[styles.filterChip, { backgroundColor: colors.primary + '15' }]}>
-              <Text style={[styles.filterChipText, { color: colors.primary }]}>{activeFilters.gym}</Text>
-              <TouchableOpacity onPress={() => setActiveFilters({ ...activeFilters, gym: '' })}>
-                <Text style={[styles.filterChipRemove, { color: colors.primary }]}>×</Text>
+          {activeFilters.gym !== "" && (
+            <View
+              style={[
+                styles.filterChip,
+                { backgroundColor: colors.primary + "15" },
+              ]}
+            >
+              <Text style={[styles.filterChipText, { color: colors.primary }]}>
+                {activeFilters.gym}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setActiveFilters({ ...activeFilters, gym: "" })}
+              >
+                <Text
+                  style={[styles.filterChipRemove, { color: colors.primary }]}
+                >
+                  ×
+                </Text>
               </TouchableOpacity>
             </View>
           )}
-          {activeFilters.product !== '' && (
-            <View style={[styles.filterChip, { backgroundColor: colors.primary + '15' }]}>
-              <Text style={[styles.filterChipText, { color: colors.primary }]}>Productos: {activeFilters.product}</Text>
-              <TouchableOpacity onPress={() => setActiveFilters({ ...activeFilters, product: '' })}>
-                <Text style={[styles.filterChipRemove, { color: colors.primary }]}>×</Text>
+          {activeFilters.product !== "" && (
+            <View
+              style={[
+                styles.filterChip,
+                { backgroundColor: colors.primary + "15" },
+              ]}
+            >
+              <Text style={[styles.filterChipText, { color: colors.primary }]}>
+                Productos: {activeFilters.product}
+              </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  setActiveFilters({ ...activeFilters, product: "" })
+                }
+              >
+                <Text
+                  style={[styles.filterChipRemove, { color: colors.primary }]}
+                >
+                  ×
+                </Text>
               </TouchableOpacity>
             </View>
           )}
-          {activeFilters.status !== '' && (
-            <View style={[styles.filterChip, { backgroundColor: colors.primary + '15' }]}>
-              <Text style={[styles.filterChipText, { color: colors.primary }]}>Estado: {activeFilters.status}</Text>
-              <TouchableOpacity onPress={() => setActiveFilters({ ...activeFilters, status: '' })}>
-                <Text style={[styles.filterChipRemove, { color: colors.primary }]}>×</Text>
+          {activeFilters.status !== "" && (
+            <View
+              style={[
+                styles.filterChip,
+                { backgroundColor: colors.primary + "15" },
+              ]}
+            >
+              <Text style={[styles.filterChipText, { color: colors.primary }]}>
+                Estado: {activeFilters.status}
+              </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  setActiveFilters({ ...activeFilters, status: "" })
+                }
+              >
+                <Text
+                  style={[styles.filterChipRemove, { color: colors.primary }]}
+                >
+                  ×
+                </Text>
               </TouchableOpacity>
             </View>
           )}
-          {Object.values(activeFilters).some(filter => filter !== '') && (
+          {Object.values(activeFilters).some((filter) => filter !== "") && (
             <TouchableOpacity
               style={[styles.clearFiltersButton, { borderColor: colors.error }]}
-              onPress={() => setActiveFilters({ gym: '', product: '', status: '' })}
+              onPress={() =>
+                setActiveFilters({ gym: "", product: "", status: "" })
+              }
             >
-              <Text style={[styles.clearFiltersText, { color: colors.error }]}>Limpiar filtros</Text>
+              <Text style={[styles.clearFiltersText, { color: colors.error }]}>
+                Limpiar filtros
+              </Text>
             </TouchableOpacity>
           )}
         </ScrollView>
@@ -117,10 +200,8 @@ export default function OrdersScreen() {
       {filteredOrders.length > 0 ? (
         <FlatList
           data={filteredOrders}
-          renderItem={({ item }) => (
-            <OrderCard order={item} />
-          )}
-          keyExtractor={item => item.id}
+          renderItem={({ item }) => <OrderCard order={item} />}
+          keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
         />
       ) : (
@@ -147,9 +228,9 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: SIZES.padding,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderBottomWidth: 1,
   },
   titleContainer: {
@@ -163,17 +244,17 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   searchContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: SIZES.padding,
     paddingBottom: SIZES.padding,
-    alignItems: 'center',
+    alignItems: "center",
   },
   searchBar: {
     flex: 1,
     height: 46,
     borderRadius: SIZES.radius,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
     borderWidth: 1,
   },
@@ -182,15 +263,15 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    height: '100%',
+    height: "100%",
     ...FONTS.body2,
   },
   filterButton: {
     width: 46,
     height: 46,
     borderRadius: SIZES.radius,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginLeft: 8,
   },
   filtersRow: {
@@ -201,8 +282,8 @@ const styles = StyleSheet.create({
     paddingRight: SIZES.padding,
   },
   filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,

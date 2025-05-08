@@ -218,6 +218,8 @@ export default function NewOrderScreen() {
             textAlignVertical="top"
           />
         </View>
+
+        
       </ScrollView>
 
       <View style={[styles.footer, { borderTopColor: colors.border }]}>
