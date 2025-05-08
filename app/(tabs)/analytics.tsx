@@ -433,7 +433,9 @@ export default function AnalyticsScreen() {
                 <Text style={[styles.productLabel, { color: colors.text }]}>
                   Avena (A)
                 </Text>
-                <Text style={styles.productValue}>{productsByType.A}</Text>
+                <Text style={[styles.productValue, { color: colors.text }]}>
+                  {productsByType.A}
+                </Text>
               </View>
               <View style={styles.productStatItem}>
                 <View
@@ -445,7 +447,9 @@ export default function AnalyticsScreen() {
                 <Text style={[styles.productLabel, { color: colors.text }]}>
                   Galletas (GNY)
                 </Text>
-                <Text style={styles.productValue}>{productsByType.GNY}</Text>
+                <Text style={[styles.productValue, { color: colors.text }]}>
+                  {productsByType.GNY}
+                </Text>
               </View>
               <View style={styles.productStatItem}>
                 <View
@@ -457,7 +461,9 @@ export default function AnalyticsScreen() {
                 <Text style={[styles.productLabel, { color: colors.text }]}>
                   Cookies (C)
                 </Text>
-                <Text style={styles.productValue}>{productsByType.C}</Text>
+                <Text style={[styles.productValue, { color: colors.text }]}>
+                  {productsByType.C}
+                </Text>
               </View>
               <View style={styles.productStatItem}>
                 <View
@@ -469,7 +475,9 @@ export default function AnalyticsScreen() {
                 <Text style={[styles.productLabel, { color: colors.text }]}>
                   Ketos (K)
                 </Text>
-                <Text style={styles.productValue}>{productsByType.K}</Text>
+                <Text style={[styles.productValue, { color: colors.text }]}>
+                  {productsByType.K}
+                </Text>
               </View>
             </View>
           </View>
