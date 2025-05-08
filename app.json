@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "Order App",
-    "slug": "Order App",
-    "version": "1.0.3b",
+    "slug": "anaboli-order-app",
+    "version": "1.0.3c",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
