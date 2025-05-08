@@ -26,6 +26,7 @@ import {
 import { COLORS, FONTS, SIZES } from "@/constants/theme";
 import { useOrderStore } from "@/store/orderStore";
 import { useThemeStore } from "@/store/themeStore";
+import Constants from "expo-constants";
 
 export default function SettingsScreen() {
   const {
@@ -226,6 +227,9 @@ export default function SettingsScreen() {
           </Text>
           <View style={styles.aboutContainer}>
             <Info size={16} color={colors.textLight} style={styles.infoIcon} />
+            <Text style={[styles.aboutDetails, { color: colors.textLight }]}>
+              {Constants.expoConfig?.version}
+            </Text>
           </View>
           <Text style={[styles.aboutDetails, { color: colors.textLight }]}>
             Una aplicación para gestionar tus pedidos. Desarrollada por [Andrew
