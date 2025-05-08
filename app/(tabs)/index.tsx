@@ -66,12 +66,13 @@ export default function OrdersScreen() {
     >
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={styles.titleContainer}>
-          <UpdateButton />
-
           <Text style={[styles.title, { color: colors.text }]}>Ordenes</Text>
           <Text style={[styles.subtitle, { color: colors.textLight }]}>
             {today}
           </Text>
+        </View>
+        <View style={styles.updateButtonContainer}>
+          <UpdateButton />
         </View>
       </View>
 
@@ -307,5 +308,11 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: SIZES.padding,
+  },
+  updateButtonContainer: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 100,
   },
 });
