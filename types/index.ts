@@ -20,8 +20,13 @@ export interface Order {
 
 export interface OrderStore {
   orders: Order[];
+  lastUpdated: number;
   addOrder: (order: Order) => void;
   updateOrder: (id: string, updatedOrder: Partial<Order>) => void;
   deleteOrder: (id: string) => void;
   clearOrders: () => void;
+  setOrders: (orders: Order[]) => void;
+  getOrdersAsJSON: () => string;
+  importOrdersFromJSON: (json: string) => { success: boolean; message: string };
+  exportOrdersToShare: () => Promise<{ success: boolean; message: string }>;
 }

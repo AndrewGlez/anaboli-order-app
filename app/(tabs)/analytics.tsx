@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -17,70 +17,87 @@ import { ProductType, OrderStatus, Order } from "@/types";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import * as RNFS from "react-native-fs";
-import * as DocumentPicker from "expo-document-picker";
 import * as XLSX from "xlsx";
 import { useThemeStore } from "@/store/themeStore";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function AnalyticsScreen() {
-  const { orders } = useOrderStore();
+  const { orders, lastUpdated } = useOrderStore();
   const { theme } = useThemeStore();
   const colors = COLORS.themed(theme);
 
   const [timeFrame, setTimeFrame] = useState<"day" | "week" | "month">("day");
+  const [refreshKey, setRefreshKey] = useState(0);
   const analyticsRef = React.useRef<View>(null);
 
-  // Filter orders based on selected time frame
-  const filteredOrders = orders.filter((order) => {
-    const orderDate = new Date(order.createdAt);
-    const now = new Date();
+  // Use useFocusEffect to refresh data when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      // Trigger refresh when screen comes into focus
+      setRefreshKey((prev) => prev + 1);
+      return () => {};
+    }, [])
+  );
 
-    if (timeFrame === "day") {
-      return orderDate.toDateString() === now.toDateString();
-    } else if (timeFrame === "week") {
-      const oneWeekAgo = new Date(now);
-      oneWeekAgo.setDate(now.getDate() - 7);
-      return orderDate >= oneWeekAgo;
-    } else {
-      const oneMonthAgo = new Date(now);
-      oneMonthAgo.setMonth(now.getMonth() - 1);
-      return orderDate >= oneMonthAgo;
-    }
-  });
+  // Monitor changes to the orders array
+  useEffect(() => {
+    // This will trigger when orders change (including imports)
+    setRefreshKey((prev) => prev + 1);
+  }, [orders]);
+
+  // Filter orders based on selected time frame using useMemo for performance
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      const orderDate = new Date(order.createdAt);
+      const now = new Date();
+
+      if (timeFrame === "day") {
+        return orderDate.toDateString() === now.toDateString();
+      } else if (timeFrame === "week") {
+        const oneWeekAgo = new Date(now);
+        oneWeekAgo.setDate(now.getDate() - 7);
+        return orderDate >= oneWeekAgo;
+      } else {
+        const oneMonthAgo = new Date(now);
+        oneMonthAgo.setMonth(now.getMonth() - 1);
+        return orderDate >= oneMonthAgo;
+      }
+    });
+  }, [orders, timeFrame, refreshKey, lastUpdated]);
 
   // Count orders by gym
-  const ordersByGym = filteredOrders.reduce<Record<string, number>>(
-    (acc, order) => {
+  const ordersByGym = useMemo(() => {
+    return filteredOrders.reduce<Record<string, number>>((acc, order) => {
       acc[order.gymName] = (acc[order.gymName] || 0) + 1;
       return acc;
-    },
-    {}
-  );
+    }, {});
+  }, [filteredOrders]);
 
   // Count products by type
-  const productsByType = filteredOrders.reduce<Record<ProductType, number>>(
-    (acc, order) => {
-      order.products.forEach((product) => {
-        acc[product.type] = (acc[product.type] || 0) + product.quantity;
-      });
-      return acc;
-    },
-    { A: 0, GNY: 0, C: 0, K: 0 }
-  );
+  const productsByType = useMemo(() => {
+    return filteredOrders.reduce<Record<ProductType, number>>(
+      (acc, order) => {
+        order.products.forEach((product) => {
+          acc[product.type] = (acc[product.type] || 0) + product.quantity;
+        });
+        return acc;
+      },
+      { A: 0, GNY: 0, C: 0, K: 0 }
+    );
+  }, [filteredOrders]);
 
   // Count orders by status
-  const ordersByStatus = filteredOrders.reduce<Record<string, number>>(
-    (acc, order) => {
+  const ordersByStatus = useMemo(() => {
+    return filteredOrders.reduce<Record<string, number>>((acc, order) => {
       acc[order.status] = (acc[order.status] || 0) + 1;
       return acc;
-    },
-    {}
-  );
+    }, {});
+  }, [filteredOrders]);
 
   // Calculate total price from Entregado + P orders
-  const totalPrice = filteredOrders.reduce(
-    (acc, order) => acc + (order.price || 0),
-    0
-  );
+  const totalPrice = useMemo(() => {
+    return filteredOrders.reduce((acc, order) => acc + (order.price || 0), 0);
+  }, [filteredOrders]);
 
   const handleExportImage = async () => {
     if (analyticsRef.current) {

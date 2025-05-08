@@ -70,7 +70,7 @@ export default function NewOrderScreen() {
       products,
       status,
       notes,
-      ...(status === "Entregado + P" ? { price: parseFloat(price) } : {}),
+      ...(price ? { price: parseFloat(price) } : {}),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
