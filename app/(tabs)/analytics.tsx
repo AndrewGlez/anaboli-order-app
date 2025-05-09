@@ -195,8 +195,9 @@ export default function AnalyticsScreen() {
       // Add detailed order information
       sortedOrders.forEach((order) => {
         const date = new Date(order.createdAt).toLocaleDateString("es-ES");
+        const orderPrice = order.price ? `$${order.price.toFixed(2)}` : "-";
 
-        order.products.forEach((product) => {
+        order.products.forEach((product, index) => {
           const productName =
             product.type === "A"
               ? "Avena"
@@ -214,7 +215,7 @@ export default function AnalyticsScreen() {
             order.status,
             productName,
             product.quantity,
-            order.price ? `$${order.price.toFixed(2)}` : "-",
+            index === 0 ? orderPrice : "", // Only show price on the first product row
             order.notes || "",
           ]);
         });
