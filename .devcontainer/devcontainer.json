@@ -1,0 +1,18 @@
+// See https://containers.dev/implementors/json_reference/ for configuration reference
+{
+	"name": "anaboli-order-app",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"remoteUser": "node",
+	"features": {
+		"ghcr.io/meaningful-ooo/devcontainer-features/fish:2": {
+			"fisher": true
+		},
+		"ghcr.io/shyim/devcontainers-features/bun:0": {}
+	},
+	"runArgs": [
+		"--network=host",
+		"--privileged"
+	]
+}
