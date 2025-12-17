@@ -89,33 +89,45 @@ export const SIZES = {
 
 export const FONTS = {
   largeTitle: {
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Montserrat_700Bold",
     fontSize: SIZES.largeTitle,
-    lineHeight: 40,
+    lineHeight: 48,
   },
-  h1: { fontFamily: "Inter_700Bold", fontSize: SIZES.h1, lineHeight: 32 },
-  h2: { fontFamily: "Inter_600SemiBold", fontSize: SIZES.h2, lineHeight: 28 },
-  h3: { fontFamily: "Inter_600SemiBold", fontSize: SIZES.h3, lineHeight: 24 },
-  h4: { fontFamily: "Inter_500Medium", fontSize: SIZES.h4, lineHeight: 22 },
+  h1: { fontFamily: "Montserrat_700Bold", fontSize: SIZES.h1, lineHeight: 36 },
+  h2: {
+    fontFamily: "Montserrat_600SemiBold",
+    fontSize: SIZES.h2,
+    lineHeight: 30,
+  },
+  h3: {
+    fontFamily: "Montserrat_600SemiBold",
+    fontSize: SIZES.h3,
+    lineHeight: 28,
+  },
+  h4: {
+    fontFamily: "Montserrat_500Medium",
+    fontSize: SIZES.h4,
+    lineHeight: 26,
+  },
   body1: {
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Montserrat_400Regular",
     fontSize: SIZES.body1,
-    lineHeight: 24,
+    lineHeight: 26,
   },
   body2: {
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Montserrat_400Regular",
     fontSize: SIZES.body2,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   body3: {
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Montserrat_400Regular",
     fontSize: SIZES.body3,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   small: {
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Montserrat_400Regular",
     fontSize: SIZES.small,
-    lineHeight: 14,
+    lineHeight: 18,
   },
 };
 

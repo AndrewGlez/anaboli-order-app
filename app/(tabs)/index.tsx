@@ -202,7 +202,9 @@ export default function OrdersScreen() {
       {filteredOrders.length > 0 ? (
         <FlatList
           data={filteredOrders}
-          renderItem={({ item }) => <OrderCard order={item} />}
+          renderItem={({ item, index }) => (
+            <OrderCard order={item} index={index} />
+          )}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
         />

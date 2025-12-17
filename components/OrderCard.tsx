@@ -1,23 +1,29 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react-native';
-import Animated, { 
-  FadeIn, 
-  FadeOut, 
-  FadeInDown, 
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Pressable,
+} from "react-native";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react-native";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  FadeInDown,
   SlideInRight,
   SlideOutRight,
-  useSharedValue, 
-  useAnimatedStyle, 
+  useSharedValue,
+  useAnimatedStyle,
   withSpring,
   Layout,
-} from 'react-native-reanimated';
-import { Order, ProductType, OrderStatus } from '@/types';
-import { COLORS, FONTS, SHADOWS, SIZES } from '@/constants/theme';
-import StatusBadge from './StatusBadge';
-import OrderDetails from './OrderDetails';
-import { useOrderStore } from '@/store/orderStore';
-import { useThemeStore } from '@/store/themeStore';
+} from "react-native-reanimated";
+import { Order, ProductType, OrderStatus } from "@/types";
+import { COLORS, FONTS, SHADOWS, SIZES } from "@/constants/theme";
+import StatusBadge from "./StatusBadge";
+import OrderDetails from "./OrderDetails";
+import { useOrderStore } from "@/store/orderStore";
+import { useThemeStore } from "@/store/themeStore";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -34,10 +40,10 @@ export default function OrderCard({ order, index = 0 }: OrderCardProps) {
   const [showDetails, setShowDetails] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // Animation values
   const scale = useSharedValue(1);
-  
+
   const cardAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
@@ -47,19 +53,19 @@ export default function OrderCard({ order, index = 0 }: OrderCardProps) {
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+    scale.value = withSpring(1, { damping: 15, stiffness: 200 });
   };
 
   const getProductIcon = (type: ProductType) => {
     switch (type) {
-      case 'A':
-        return { color: COLORS.productA, label: 'A' };
-      case 'GNY':
-        return { color: COLORS.productGNY, label: 'G' };
-      case 'C':
-        return { color: COLORS.productC, label: 'C' };
-      case 'K':
-        return { color: COLORS.productK, label: 'K' };
+      case "A":
+        return { color: COLORS.productA, label: "A" };
+      case "GNY":
+        return { color: COLORS.productGNY, label: "G" };
+      case "C":
+        return { color: COLORS.productC, label: "C" };
+      case "K":
+        return { color: COLORS.productK, label: "K" };
     }
   };
 
@@ -79,18 +85,26 @@ export default function OrderCard({ order, index = 0 }: OrderCardProps) {
   };
 
   return (
-    <Animated.View 
-      entering={FadeInDown.delay(index * 50).springify().damping(15)}
+    <Animated.View
+      entering={FadeInDown.delay(index * 50)
+        .springify()
+        .damping(15)}
       layout={Layout.springify().damping(15)}
-      style={[styles.container, { backgroundColor: colors.white, borderColor: colors.border }, cardAnimatedStyle]}
+      style={[
+        styles.container,
+        { backgroundColor: colors.white, borderColor: colors.border },
+        cardAnimatedStyle,
+      ]}
     >
-      <AnimatedPressable 
-        onPress={toggleDetails} 
+      <AnimatedPressable
+        onPress={toggleDetails}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
         <View style={[styles.cardHeader, { borderBottomColor: colors.border }]}>
-          <Text style={[styles.gymName, { color: colors.text }]}>{order.gymName}</Text>
+          <Text style={[styles.gymName, { color: colors.text }]}>
+            {order.gymName}
+          </Text>
           <View style={styles.headerRight}>
             <StatusBadge status={order.status} />
             <TouchableOpacity
@@ -106,22 +120,36 @@ export default function OrderCard({ order, index = 0 }: OrderCardProps) {
           {order.products.map((product, idx) => {
             const icon = getProductIcon(product.type);
             return (
-              <Animated.View 
-                key={idx} 
+              <Animated.View
+                key={idx}
                 style={styles.productItem}
                 entering={FadeIn.delay(100 + idx * 50)}
               >
-                <View style={[styles.productIcon, { backgroundColor: icon.color + '15' }]}>
-                  <Text style={[styles.productIconText, { color: icon.color }]}>{icon.label}</Text>
+                <View
+                  style={[
+                    styles.productIcon,
+                    { backgroundColor: icon.color + "15" },
+                  ]}
+                >
+                  <Text style={[styles.productIconText, { color: icon.color }]}>
+                    {icon.label}
+                  </Text>
                 </View>
                 <View style={styles.productInfo}>
                   <Text style={[styles.productName, { color: colors.text }]}>
-                    {product.type === 'A' && 'Avena'}
-                    {product.type === 'GNY' && 'Galletas'}
-                    {product.type === 'C' && 'Cookies'}
-                    {product.type === 'K' && 'Ketos'}
+                    {product.type === "A" && "Avena"}
+                    {product.type === "GNY" && "Galletas"}
+                    {product.type === "C" && "Cookies"}
+                    {product.type === "K" && "Ketos"}
                   </Text>
-                  <Text style={[styles.productQuantity, { color: colors.textLight }]}>x{product.quantity}</Text>
+                  <Text
+                    style={[
+                      styles.productQuantity,
+                      { color: colors.textLight },
+                    ]}
+                  >
+                    x{product.quantity}
+                  </Text>
                 </View>
               </Animated.View>
             );
@@ -130,7 +158,10 @@ export default function OrderCard({ order, index = 0 }: OrderCardProps) {
 
         {order.notes && (
           <View style={styles.notesContainer}>
-            <Text style={[styles.notesText, { color: colors.textLight }]} numberOfLines={2}>
+            <Text
+              style={[styles.notesText, { color: colors.textLight }]}
+              numberOfLines={2}
+            >
               {order.notes}
             </Text>
           </View>
@@ -141,16 +172,19 @@ export default function OrderCard({ order, index = 0 }: OrderCardProps) {
             {new Date(order.createdAt).toLocaleDateString()}
           </Text>
           <Text style={[styles.viewDetailsText, { color: colors.primary }]}>
-            {showDetails ? 'Ocultar Detalles' : 'Ver Detalles'}
+            {showDetails ? "Ocultar Detalles" : "Ver Detalles"}
           </Text>
         </View>
       </AnimatedPressable>
 
       {showOptions && (
-        <Animated.View 
+        <Animated.View
           entering={FadeIn.duration(150).springify()}
           exiting={FadeOut.duration(100)}
-          style={[styles.optionsMenu, { backgroundColor: colors.white, borderColor: colors.border }]}
+          style={[
+            styles.optionsMenu,
+            { backgroundColor: colors.white, borderColor: colors.border },
+          ]}
         >
           <TouchableOpacity
             style={styles.optionItem}
@@ -160,15 +194,20 @@ export default function OrderCard({ order, index = 0 }: OrderCardProps) {
               setShowDetails(true);
             }}
           >
-            <Pencil size={16} color={colors.primary} style={styles.optionIcon} />
-            <Text style={[styles.optionText, { color: colors.text }]}>Editar</Text>
+            <Pencil
+              size={16}
+              color={colors.primary}
+              style={styles.optionIcon}
+            />
+            <Text style={[styles.optionText, { color: colors.text }]}>
+              Editar
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.optionItem}
-            onPress={handleDelete}
-          >
+          <TouchableOpacity style={styles.optionItem} onPress={handleDelete}>
             <Trash2 size={16} color={colors.error} style={styles.optionIcon} />
-            <Text style={[styles.optionText, { color: colors.error }]}>Eliminar</Text>
+            <Text style={[styles.optionText, { color: colors.error }]}>
+              Eliminar
+            </Text>
           </TouchableOpacity>
         </Animated.View>
       )}
@@ -199,12 +238,12 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius,
     marginBottom: 16,
     ...SHADOWS.small,
-    position: 'relative',
+    position: "relative",
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
@@ -215,8 +254,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   optionsButton: {
     padding: 4,
@@ -226,26 +265,26 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   productItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
   },
   productIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   productIconText: {
     ...FONTS.body3,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   productInfo: {
-    flexDirection: 'row',
+    flexDirection: "row",
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   productName: {
     ...FONTS.body2,
@@ -262,11 +301,11 @@ const styles = StyleSheet.create({
   notesText: {
     ...FONTS.body3,
     color: COLORS.textLight,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     padding: 12,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
@@ -280,7 +319,7 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   optionsMenu: {
-    position: 'absolute',
+    position: "absolute",
     top: 50,
     right: 16,
     backgroundColor: COLORS.white,
@@ -292,8 +331,8 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   optionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 8,
   },
   optionIcon: {

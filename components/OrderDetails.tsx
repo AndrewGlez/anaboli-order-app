@@ -40,9 +40,11 @@ export default function OrderDetails({
   const [products, setProducts] = useState([...order.products]);
   const [notes, setNotes] = useState(order.notes || "");
   const [price, setPrice] = useState(order.price?.toString() || "");
-  
+
   // Local gastos state for new gastos being added during edit
-  const [newGastos, setNewGastos] = useState<Array<{ name: string; price: string }>>([]);
+  const [newGastos, setNewGastos] = useState<
+    Array<{ name: string; price: string }>
+  >([]);
 
   const handleAddProduct = () => {
     setProducts([...products, { type: "A", quantity: 1 }]);
@@ -69,7 +71,11 @@ export default function OrderDetails({
     setNewGastos([...newGastos, { name: "", price: "" }]);
   };
 
-  const handleUpdateNewGasto = (index: number, field: "name" | "price", value: string) => {
+  const handleUpdateNewGasto = (
+    index: number,
+    field: "name" | "price",
+    value: string
+  ) => {
     const updatedGastos = [...newGastos];
     updatedGastos[index] = { ...updatedGastos[index], [field]: value };
     setNewGastos(updatedGastos);
@@ -308,7 +314,7 @@ export default function OrderDetails({
             <Text style={[styles.sectionLabel, { color: colors.textLight }]}>
               Gastos
             </Text>
-            
+
             {/* Existing gastos */}
             {gastos.map((gasto) => (
               <View
@@ -319,7 +325,9 @@ export default function OrderDetails({
                   <Text style={[styles.gastoName, { color: colors.text }]}>
                     {gasto.name}
                   </Text>
-                  <Text style={[styles.gastoPrice, { color: colors.textLight }]}>
+                  <Text
+                    style={[styles.gastoPrice, { color: colors.textLight }]}
+                  >
                     ${gasto.price.toFixed(2)}
                   </Text>
                 </View>
@@ -332,7 +340,6 @@ export default function OrderDetails({
               </View>
             ))}
 
-            {/* New gastos being added */}
             {newGastos.map((gasto, index) => (
               <View
                 key={`new-${index}`}
@@ -348,7 +355,9 @@ export default function OrderDetails({
                     },
                   ]}
                   value={gasto.name}
-                  onChangeText={(text) => handleUpdateNewGasto(index, "name", text)}
+                  onChangeText={(text) =>
+                    handleUpdateNewGasto(index, "name", text)
+                  }
                   placeholder="Nombre del gasto"
                   placeholderTextColor={colors.textLight}
                 />
@@ -362,7 +371,9 @@ export default function OrderDetails({
                     },
                   ]}
                   value={gasto.price}
-                  onChangeText={(text) => handleUpdateNewGasto(index, "price", text)}
+                  onChangeText={(text) =>
+                    handleUpdateNewGasto(index, "price", text)
+                  }
                   placeholder="$0.00"
                   placeholderTextColor={colors.textLight}
                   keyboardType="numeric"
@@ -377,7 +388,10 @@ export default function OrderDetails({
             ))}
 
             <TouchableOpacity
-              style={[styles.addGastoButton, { backgroundColor: colors.warning }]}
+              style={[
+                styles.addGastoButton,
+                { backgroundColor: colors.warning },
+              ]}
               onPress={handleAddNewGasto}
             >
               <PlusCircle size={20} color={COLORS.white} />
@@ -386,7 +400,6 @@ export default function OrderDetails({
           </View>
         )}
 
-        {/* Gastos Section - View Mode */}
         {!isEditing && gastos.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionLabel, { color: colors.textLight }]}>
@@ -395,7 +408,14 @@ export default function OrderDetails({
             {gastos.map((gasto) => (
               <View
                 key={gasto.id}
-                style={[styles.gastoViewRow, { borderColor: colors.warning }]}
+                style={[
+                  styles.gastoViewRow,
+                  {
+                    borderColor: colors.warning,
+                    backgroundColor: colors.error + "40",
+                    padding: 10,
+                  },
+                ]}
               >
                 <View style={styles.gastoInfo}>
                   <Text style={[styles.gastoName, { color: colors.text }]}>
@@ -410,8 +430,12 @@ export default function OrderDetails({
                 </Text>
               </View>
             ))}
-            <View style={[styles.gastosTotalRow, { borderTopColor: colors.border }]}>
-              <Text style={[styles.gastosTotalLabel, { color: colors.textLight }]}>
+            <View
+              style={[styles.gastosTotalRow, { borderTopColor: colors.border }]}
+            >
+              <Text
+                style={[styles.gastosTotalLabel, { color: colors.textLight }]}
+              >
                 Total Gastos:
               </Text>
               <Text style={[styles.gastosTotalValue, { color: colors.text }]}>

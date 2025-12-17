@@ -411,6 +411,31 @@ export default function AnalyticsScreen() {
     }
   };
 
+  const tabIndicatorPosition = useSharedValue(0);
+
+  const handleTimeFrameChange = (newTimeFrame: "day" | "week" | "month") => {
+    const positions = { day: 0, week: 1, month: 2 };
+    tabIndicatorPosition.value = withSpring(positions[newTimeFrame], {
+      damping: 15,
+      stiffness: 150,
+    });
+    setTimeFrame(newTimeFrame);
+  };
+
+  const tabIndicatorStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          translateX: interpolate(
+            tabIndicatorPosition.value,
+            [0, 1, 2],
+            [0, 100, 200]
+          ),
+        },
+      ],
+    };
+  });
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -422,64 +447,65 @@ export default function AnalyticsScreen() {
         ]}
       >
         <Text style={[styles.title, { color: colors.text }]}>📊 Análisis</Text>
-        <View style={styles.timeFrameContainer}>
-          <TouchableOpacity
+        <View
+          style={[
+            styles.timeFrameContainer,
+            { backgroundColor: colors.border },
+          ]}
+        >
+          <Animated.View
             style={[
-              [styles.timeFrameButton, { backgroundColor: colors.white }],
-              timeFrame === "day" && styles.activeTimeFrame,
+              styles.tabIndicator,
+              { backgroundColor: colors.primary },
+              tabIndicatorStyle,
             ]}
-            onPress={() => setTimeFrame("day")}
+          />
+          <AnimatedPressable
+            style={styles.timeFrameButton}
+            onPress={() => handleTimeFrameChange("day")}
           >
-            <Text
+            <Animated.Text
               style={[
-                [styles.timeFrameText, { color: colors.textLight }],
-                timeFrame === "day" && styles.activeTimeFrameText,
+                styles.timeFrameText,
+                {
+                  color: timeFrame === "day" ? COLORS.white : colors.textLight,
+                },
               ]}
             >
               Día
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              [styles.timeFrameButton, { backgroundColor: colors.white }],
-              timeFrame === "week" && styles.activeTimeFrame,
-            ]}
-            onPress={() => setTimeFrame("week")}
+            </Animated.Text>
+          </AnimatedPressable>
+          <AnimatedPressable
+            style={styles.timeFrameButton}
+            onPress={() => handleTimeFrameChange("week")}
           >
-            <Text
+            <Animated.Text
               style={[
-                [styles.timeFrameText, { color: colors.textLight }],
-                timeFrame === "week" && styles.activeTimeFrameText,
+                styles.timeFrameText,
+                {
+                  color: timeFrame === "week" ? COLORS.white : colors.textLight,
+                },
               ]}
             >
               Semana
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              [styles.timeFrameButton, { backgroundColor: colors.white }],
-              timeFrame === "month" && styles.activeTimeFrame,
-            ]}
-            onPress={() => setTimeFrame("month")}
+            </Animated.Text>
+          </AnimatedPressable>
+          <AnimatedPressable
+            style={styles.timeFrameButton}
+            onPress={() => handleTimeFrameChange("month")}
           >
-            <Text
+            <Animated.Text
               style={[
-                [styles.timeFrameText, { color: colors.textLight }],
-                timeFrame === "month" && styles.activeTimeFrameText,
+                styles.timeFrameText,
+                {
+                  color:
+                    timeFrame === "month" ? COLORS.white : colors.textLight,
+                },
               ]}
             >
               Mes
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.exportButton, { backgroundColor: colors.primary }]}
-            onPress={handleExport}
-          >
-            <Share2 size={20} color={COLORS.white} />
-            <Text style={[styles.exportButtonText, { color: colors.text }]}>
-              Exportar
-            </Text>
-          </TouchableOpacity>
+            </Animated.Text>
+          </AnimatedPressable>
         </View>
       </View>
 
@@ -729,6 +755,22 @@ export default function AnalyticsScreen() {
           </Animated.View>
         </View>
       </ScrollView>
+
+      <Animated.View
+        entering={FadeInDown.delay(600).springify().damping(15)}
+        style={styles.floatingButtonContainer}
+      >
+        <TouchableOpacity
+          style={[
+            styles.floatingExportButton,
+            { backgroundColor: colors.primary },
+          ]}
+          onPress={handleExport}
+          activeOpacity={0.8}
+        >
+          <Share2 size={24} color={COLORS.white} />
+        </TouchableOpacity>
+      </Animated.View>
     </SafeAreaView>
   );
 }
@@ -762,40 +804,51 @@ const styles = StyleSheet.create({
   timeFrameContainer: {
     flexDirection: "row",
     marginBottom: 16,
+    borderRadius: SIZES.radius,
+    padding: 4,
+    position: "relative",
+    overflow: "hidden",
+    alignSelf: "center",
+  },
+  tabIndicator: {
+    position: "absolute",
+    width: 100,
+    height: "100%",
+    borderRadius: SIZES.radius - 2,
+    top: 4,
+    left: 4,
   },
   timeFrameButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: SIZES.radius,
-    marginRight: 8,
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  activeTimeFrame: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    width: 100,
+    paddingVertical: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1,
   },
   timeFrameText: {
-    ...FONTS.body3,
-    color: COLORS.text,
+    ...FONTS.body1,
+    fontWeight: "600",
   },
-  activeTimeFrameText: {
-    color: COLORS.white,
+  floatingButtonContainer: {
+    position: "absolute",
+    bottom: 24,
+    right: 24,
+    zIndex: 100,
   },
-  exportButton: {
-    flexDirection: "row",
+  floatingExportButton: {
+    width: 64,
+    height: 64,
+    borderRadius: "100%",
     alignItems: "center",
-    padding: 10,
-    borderRadius: SIZES.radius,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    alignSelf: "flex-start",
-  },
-  exportButtonText: {
-    ...FONTS.body3,
-    color: COLORS.primary,
-    marginLeft: 8,
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
   contentContainer: {
     padding: SIZES.padding,

@@ -1,5 +1,5 @@
-import React, { useEffect, ReactNode } from 'react';
-import { ViewStyle, StyleProp } from 'react-native';
+import React, { useEffect, ReactNode } from "react";
+import { ViewStyle, StyleProp } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -21,7 +21,7 @@ import Animated, {
   ZoomOut,
   Layout,
   runOnJS,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
 
 // Spring configs
 const SPRING_CONFIG = {
@@ -44,7 +44,12 @@ interface AnimatedCardProps {
   delay?: number;
 }
 
-export function AnimatedCard({ children, index = 0, style, delay = 0 }: AnimatedCardProps) {
+export function AnimatedCard({
+  children,
+  index = 0,
+  style,
+  delay = 0,
+}: AnimatedCardProps) {
   const translateY = useSharedValue(30);
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.95);
@@ -57,17 +62,12 @@ export function AnimatedCard({ children, index = 0, style, delay = 0 }: Animated
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
+    transform: [{ translateY: translateY.value }, { scale: scale.value }],
     opacity: opacity.value,
   }));
 
   return (
-    <Animated.View style={[style, animatedStyle]}>
-      {children}
-    </Animated.View>
+    <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
   );
 }
 
@@ -79,7 +79,12 @@ interface AnimatedPressableProps {
   disabled?: boolean;
 }
 
-export function AnimatedPressable({ children, style, onPress, disabled }: AnimatedPressableProps) {
+export function AnimatedPressable({
+  children,
+  style,
+  onPress,
+  disabled,
+}: AnimatedPressableProps) {
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -98,10 +103,14 @@ export function AnimatedPressable({ children, style, onPress, disabled }: Animat
     <Animated.View style={[style, animatedStyle]}>
       <Animated.View
         onTouchStart={disabled ? undefined : handlePressIn}
-        onTouchEnd={disabled ? undefined : () => {
-          handlePressOut();
-          onPress?.();
-        }}
+        onTouchEnd={
+          disabled
+            ? undefined
+            : () => {
+                handlePressOut();
+                onPress?.();
+              }
+        }
         onTouchCancel={disabled ? undefined : handlePressOut}
       >
         {children}
@@ -118,7 +127,12 @@ interface FadeInViewProps {
   duration?: number;
 }
 
-export function FadeInView({ children, style, delay = 0, duration = 400 }: FadeInViewProps) {
+export function FadeInView({
+  children,
+  style,
+  delay = 0,
+  duration = 400,
+}: FadeInViewProps) {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(10);
 
@@ -133,9 +147,7 @@ export function FadeInView({ children, style, delay = 0, duration = 400 }: FadeI
   }));
 
   return (
-    <Animated.View style={[style, animatedStyle]}>
-      {children}
-    </Animated.View>
+    <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
   );
 }
 
@@ -146,13 +158,15 @@ interface StaggeredListProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export function StaggeredList({ children, staggerDelay = 100, style }: StaggeredListProps) {
+export function StaggeredList({
+  children,
+  staggerDelay = 100,
+  style,
+}: StaggeredListProps) {
   return (
     <Animated.View style={style}>
       {React.Children.map(children, (child, index) => (
-        <FadeInView delay={index * staggerDelay}>
-          {child}
-        </FadeInView>
+        <FadeInView delay={index * staggerDelay}>{child}</FadeInView>
       ))}
     </Animated.View>
   );
@@ -168,13 +182,13 @@ interface AnimatedNumberProps {
   duration?: number;
 }
 
-export function AnimatedNumber({ 
-  value, 
-  style, 
-  textStyle, 
-  prefix = '', 
-  suffix = '',
-  duration = 800 
+export function AnimatedNumber({
+  value,
+  style,
+  textStyle,
+  prefix = "",
+  suffix = "",
+  duration = 800,
 }: AnimatedNumberProps) {
   const animatedValue = useSharedValue(0);
   const [displayValue, setDisplayValue] = React.useState(0);
@@ -198,7 +212,9 @@ export function AnimatedNumber({
   return (
     <Animated.View style={style}>
       <Animated.Text style={textStyle}>
-        {prefix}{displayValue}{suffix}
+        {prefix}
+        {displayValue}
+        {suffix}
       </Animated.Text>
     </Animated.View>
   );
@@ -211,7 +227,11 @@ interface CollapsibleViewProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export function CollapsibleView({ children, expanded, style }: CollapsibleViewProps) {
+export function CollapsibleView({
+  children,
+  expanded,
+  style,
+}: CollapsibleViewProps) {
   const height = useSharedValue(0);
   const opacity = useSharedValue(0);
 
@@ -225,14 +245,14 @@ export function CollapsibleView({ children, expanded, style }: CollapsibleViewPr
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
-    overflow: 'hidden',
+    overflow: "hidden",
   }));
 
   if (!expanded) return null;
 
   return (
-    <Animated.View 
-      entering={FadeInDown.duration(250).springify()} 
+    <Animated.View
+      entering={FadeInDown.duration(250).springify()}
       exiting={FadeOut.duration(150)}
       style={[style, animatedStyle]}
     >
@@ -245,12 +265,17 @@ export function CollapsibleView({ children, expanded, style }: CollapsibleViewPr
 interface SlideInViewProps {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
-  direction?: 'left' | 'right';
+  direction?: "left" | "right";
   delay?: number;
 }
 
-export function SlideInView({ children, style, direction = 'right', delay = 0 }: SlideInViewProps) {
-  const translateX = useSharedValue(direction === 'right' ? 50 : -50);
+export function SlideInView({
+  children,
+  style,
+  direction = "right",
+  delay = 0,
+}: SlideInViewProps) {
+  const translateX = useSharedValue(direction === "right" ? 50 : -50);
   const opacity = useSharedValue(0);
 
   useEffect(() => {
@@ -264,9 +289,7 @@ export function SlideInView({ children, style, direction = 'right', delay = 0 }:
   }));
 
   return (
-    <Animated.View style={[style, animatedStyle]}>
-      {children}
-    </Animated.View>
+    <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
   );
 }
 
@@ -294,9 +317,7 @@ export function PulseView({ children, style, active = false }: PulseViewProps) {
   }));
 
   return (
-    <Animated.View style={[style, animatedStyle]}>
-      {children}
-    </Animated.View>
+    <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
   );
 }
 
@@ -322,9 +343,7 @@ export function PopInView({ children, style, delay = 0 }: PopInViewProps) {
   }));
 
   return (
-    <Animated.View style={[style, animatedStyle]}>
-      {children}
-    </Animated.View>
+    <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
   );
 }
 
@@ -343,4 +362,4 @@ export const AnimatedPresets = {
   Layout,
 };
 
-export { default as Animated } from 'react-native-reanimated';
+export { default as Animated } from "react-native-reanimated";

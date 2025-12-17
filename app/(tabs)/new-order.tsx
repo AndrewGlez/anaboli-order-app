@@ -46,9 +46,11 @@ export default function NewOrderScreen() {
   const [status, setStatus] = useState<OrderStatus>("Entregado");
   const [notes, setNotes] = useState("");
   const [price, setPrice] = useState("");
-  
+
   // Gastos (expenses) state
-  const [gastos, setGastos] = useState<Array<{ name: string; price: string }>>([]);
+  const [gastos, setGastos] = useState<Array<{ name: string; price: string }>>(
+    []
+  );
 
   const handleAddProduct = () => {
     setProducts([...products, { type: "A", quantity: 1 }]);
@@ -75,7 +77,11 @@ export default function NewOrderScreen() {
     setGastos([...gastos, { name: "", price: "" }]);
   };
 
-  const handleUpdateGasto = (index: number, field: "name" | "price", value: string) => {
+  const handleUpdateGasto = (
+    index: number,
+    field: "name" | "price",
+    value: string
+  ) => {
     const updatedGastos = [...gastos];
     updatedGastos[index] = { ...updatedGastos[index], [field]: value };
     setGastos(updatedGastos);
@@ -142,10 +148,7 @@ export default function NewOrderScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <Animated.View 
-        style={styles.header}
-        entering={FadeInDown.duration(300)}
-      >
+      <Animated.View style={styles.header} entering={FadeInDown.duration(300)}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
@@ -158,7 +161,7 @@ export default function NewOrderScreen() {
       </Animated.View>
 
       <ScrollView style={styles.form}>
-        <Animated.View 
+        <Animated.View
           style={styles.formGroup}
           entering={FadeInDown.delay(100).springify()}
         >
@@ -179,7 +182,7 @@ export default function NewOrderScreen() {
           />
         </Animated.View>
 
-        <Animated.View 
+        <Animated.View
           style={styles.formGroup}
           entering={FadeInDown.delay(150).springify()}
         >
@@ -234,7 +237,7 @@ export default function NewOrderScreen() {
           </TouchableOpacity>
         </Animated.View>
 
-        <Animated.View 
+        <Animated.View
           style={styles.formGroup}
           entering={FadeInDown.delay(200).springify()}
         >
@@ -242,7 +245,7 @@ export default function NewOrderScreen() {
           <StatusSelector value={status} onChange={setStatus} />
         </Animated.View>
 
-        <Animated.View 
+        <Animated.View
           style={styles.formGroup}
           entering={FadeInDown.delay(250).springify()}
         >
@@ -264,7 +267,7 @@ export default function NewOrderScreen() {
           />
         </Animated.View>
 
-        <Animated.View 
+        <Animated.View
           style={styles.formGroup}
           entering={FadeInDown.delay(300).springify()}
         >
@@ -289,7 +292,7 @@ export default function NewOrderScreen() {
           />
         </Animated.View>
 
-        <Animated.View 
+        <Animated.View
           style={styles.formGroup}
           entering={FadeInDown.delay(350).springify()}
         >
@@ -350,8 +353,6 @@ export default function NewOrderScreen() {
             </Text>
           </TouchableOpacity>
         </Animated.View>
-
-        
       </ScrollView>
 
       <View style={[styles.footer, { borderTopColor: colors.border }]}>
