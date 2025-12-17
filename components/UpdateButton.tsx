@@ -6,11 +6,22 @@ import {
   Alert,
   ActivityIndicator,
   View,
+  Pressable,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withSequence,
+  withRepeat,
+  FadeIn,
+} from "react-native-reanimated";
 import { Download } from "lucide-react-native";
 import { checkForUpdates, downloadUpdate } from "@/services/updateService";
 import { COLORS, FONTS, SIZES } from "@/constants/theme";
 import { useThemeStore } from "@/store/themeStore";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const UpdateButton = () => {
   const [isChecking, setIsChecking] = useState(false);
@@ -19,6 +30,37 @@ const UpdateButton = () => {
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
   const { theme } = useThemeStore();
   const colors = COLORS.themed(theme);
+
+  const scale = useSharedValue(1);
+  const pulseScale = useSharedValue(1);
+
+  // Pulse animation for attention
+  useEffect(() => {
+    if (updateAvailable) {
+      pulseScale.value = withRepeat(
+        withSequence(
+          withSpring(1.1, { damping: 10 }),
+          withSpring(1, { damping: 10 })
+        ),
+        -1,
+        true
+      );
+    }
+  }, [updateAvailable]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: scale.value * pulseScale.value },
+    ],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.9, { damping: 15, stiffness: 300 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+  };
 
   const checkForUpdate = async () => {
     setIsChecking(true);
@@ -84,17 +126,21 @@ const UpdateButton = () => {
   }
 
   return (
-    <TouchableOpacity
-      style={[styles.button, { backgroundColor: colors.primary }]}
+    <AnimatedPressable
+      style={[styles.button, { backgroundColor: colors.primary }, animatedStyle]}
       onPress={handleDownload}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       disabled={isChecking}
     >
-      {isChecking ? (
-        <ActivityIndicator color={colors.white} size="small" />
-      ) : (
-        <Download size={24} color={colors.white} />
-      )}
-    </TouchableOpacity>
+      <Animated.View entering={FadeIn.duration(300)}>
+        {isChecking ? (
+          <ActivityIndicator color={colors.white} size="small" />
+        ) : (
+          <Download size={24} color={colors.white} />
+        )}
+      </Animated.View>
+    </AnimatedPressable>
   );
 };
 

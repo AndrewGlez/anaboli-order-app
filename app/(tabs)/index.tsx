@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Search, Filter, Calendar } from "lucide-react-native";
@@ -66,9 +67,9 @@ export default function OrdersScreen() {
     >
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={styles.titleContainer}>
-          <Text style={[styles.title, { color: colors.text }]}>Ordenes</Text>
+          <Text style={[styles.title, { color: colors.text }]}>📋 Ordenes</Text>
           <Text style={[styles.subtitle, { color: colors.textLight }]}>
-            {today}
+            ☁️ {today}
           </Text>
         </View>
         <View style={styles.updateButtonContainer}>
@@ -277,6 +278,7 @@ const styles = StyleSheet.create({
   },
   filtersRow: {
     paddingLeft: SIZES.padding,
+    maxHeight: "4%",
     marginBottom: 10,
   },
   filtersContent: {
@@ -296,6 +298,7 @@ const styles = StyleSheet.create({
   filterChipRemove: {
     ...FONTS.h3,
     marginLeft: 4,
+    marginTop: -2,
   },
   clearFiltersButton: {
     paddingHorizontal: 12,

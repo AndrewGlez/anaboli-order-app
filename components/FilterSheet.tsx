@@ -1,9 +1,17 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { X } from 'lucide-react-native';
-import { COLORS, FONTS, SIZES } from '@/constants/theme';
-import { OrderStatus, ProductType } from '@/types';
-import { useOrderStore } from '@/store/orderStore';
+import React, { useEffect, useRef, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Animated,
+} from "react-native";
+import { X } from "lucide-react-native";
+import { COLORS, FONTS, SIZES } from "@/constants/theme";
+import { OrderStatus, ProductType } from "@/types";
+import { useOrderStore } from "@/store/orderStore";
+import { useThemeStore } from "@/store/themeStore";
 
 interface FilterSheetProps {
   visible: boolean;
@@ -13,71 +21,130 @@ interface FilterSheetProps {
     product: string;
     status: string;
   };
-  setActiveFilters: React.Dispatch<React.SetStateAction<{
-    gym: string;
-    product: string;
-    status: string;
-  }>>;
+  setActiveFilters: React.Dispatch<
+    React.SetStateAction<{
+      gym: string;
+      product: string;
+      status: string;
+    }>
+  >;
 }
 
 export default function FilterSheet({
   visible,
   onClose,
   activeFilters,
-  setActiveFilters
+  setActiveFilters,
 }: FilterSheetProps) {
   const { orders } = useOrderStore();
+  const { theme } = useThemeStore();
+  const colors = COLORS.themed(theme);
 
-  if (!visible) return null;
+  // Animated drawer state
+  const translateY = useRef(new Animated.Value(400)).current;
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
+  const [mounted, setMounted] = useState(visible);
+  const [sheetHeight, setSheetHeight] = useState(0);
+
+  useEffect(() => {
+    if (visible) {
+      setMounted(true);
+      translateY.setValue(sheetHeight || 400);
+      Animated.parallel([
+        Animated.timing(overlayOpacity, {
+          toValue: 1,
+          duration: 190,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 190,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (mounted) {
+      Animated.parallel([
+        Animated.timing(overlayOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: sheetHeight || 400,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start(() => setMounted(false));
+    }
+  }, [visible, sheetHeight]);
 
   // Get unique gym names
-  const gymNames = [...new Set(orders.map(order => order.gymName))];
+  const gymNames = [...new Set(orders.map((order) => order.gymName))];
 
   // Product types
-  const productTypes: { type: ProductType; label: string; }[] = [
-    { type: 'A', label: 'Avena' },
-    { type: 'GNY', label: 'Galletas' },
-    { type: 'C', label: 'Cookies' },
-    { type: 'K', label: 'Ketos' },
+  const productTypes: { type: ProductType; label: string }[] = [
+    { type: "A", label: "Avena" },
+    { type: "GNY", label: "Galletas" },
+    { type: "C", label: "Cookies" },
+    { type: "K", label: "Ketos" },
   ];
 
   // Status types
   const statusTypes: OrderStatus[] = [
-    'Entregado',
-    'Entregado + P',
-    'Entregado + TRF',
-
+    "Entregado",
+    "Entregado + P",
+    "Entregado + TRF",
   ];
 
+  if (!mounted) return null;
+
   return (
-    <View style={styles.overlay}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Filtrar Ordenes</Text>
+    <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]}>
+      <Animated.View
+        style={[
+          styles.container,
+          { transform: [{ translateY }], backgroundColor: colors.background },
+        ]}
+        onLayout={(e) => {
+          const h = e.nativeEvent.layout.height;
+          if (h && h !== sheetHeight) setSheetHeight(h);
+        }}
+      >
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <Text style={[styles.title, { color: colors.text }]}>
+            Filtrar Ordenes
+          </Text>
           <TouchableOpacity onPress={onClose}>
-            <X size={24} color={COLORS.text} />
+            <X size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content}>
+        <ScrollView
+          style={[styles.content, { backgroundColor: colors.background }]}
+        >
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Gym</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Gym
+            </Text>
             <View style={styles.optionsContainer}>
               {gymNames.map((gym) => (
                 <TouchableOpacity
                   key={gym}
                   style={[
                     styles.optionButton,
+                    ,
                     activeFilters.gym === gym && styles.activeOption,
                   ]}
-                  onPress={() => setActiveFilters({
-                    ...activeFilters,
-                    gym: activeFilters.gym === gym ? '' : gym,
-                  })}
+                  onPress={() =>
+                    setActiveFilters({
+                      ...activeFilters,
+                      gym: activeFilters.gym === gym ? "" : gym,
+                    })
+                  }
                 >
                   <Text
                     style={[
-                      styles.optionText,
+                      { color: colors.textLight },
                       activeFilters.gym === gym && styles.activeOptionText,
                     ]}
                   >
@@ -88,25 +155,36 @@ export default function FilterSheet({
             </View>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Tipos de productos</Text>
+          <View
+            style={[styles.section, { backgroundColor: colors.background }]}
+          >
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Tipos de productos
+            </Text>
             <View style={styles.optionsContainer}>
               {productTypes.map((product) => (
                 <TouchableOpacity
                   key={product.type}
                   style={[
                     styles.optionButton,
-                    activeFilters.product === product.type && styles.activeOption,
+                    activeFilters.product === product.type &&
+                      styles.activeOption,
                   ]}
-                  onPress={() => setActiveFilters({
-                    ...activeFilters,
-                    product: activeFilters.product === product.type ? '' : product.type,
-                  })}
+                  onPress={() =>
+                    setActiveFilters({
+                      ...activeFilters,
+                      product:
+                        activeFilters.product === product.type
+                          ? ""
+                          : product.type,
+                    })
+                  }
                 >
                   <Text
                     style={[
-                      styles.optionText,
-                      activeFilters.product === product.type && styles.activeOptionText,
+                      { color: colors.textLight },
+                      activeFilters.product === product.type &&
+                        styles.activeOptionText,
                     ]}
                   >
                     {product.label} ({product.type})
@@ -116,8 +194,12 @@ export default function FilterSheet({
             </View>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Estado</Text>
+          <View
+            style={[styles.section, { backgroundColor: colors.background }]}
+          >
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Estado
+            </Text>
             <View style={styles.optionsContainer}>
               {statusTypes.map((status) => (
                 <TouchableOpacity
@@ -126,15 +208,18 @@ export default function FilterSheet({
                     styles.optionButton,
                     activeFilters.status === status && styles.activeOption,
                   ]}
-                  onPress={() => setActiveFilters({
-                    ...activeFilters,
-                    status: activeFilters.status === status ? '' : status,
-                  })}
+                  onPress={() =>
+                    setActiveFilters({
+                      ...activeFilters,
+                      status: activeFilters.status === status ? "" : status,
+                    })
+                  }
                 >
                   <Text
                     style={[
-                      styles.optionText,
-                      activeFilters.status === status && styles.activeOptionText,
+                      { color: colors.textLight },
+                      activeFilters.status === status &&
+                        styles.activeOptionText,
                     ]}
                   >
                     {status}
@@ -145,46 +230,45 @@ export default function FilterSheet({
           </View>
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { backgroundColor: colors.background }]}>
           <TouchableOpacity
             style={styles.resetButton}
-            onPress={() => setActiveFilters({ gym: '', product: '', status: '' })}
+            onPress={() =>
+              setActiveFilters({ gym: "", product: "", status: "" })
+            }
           >
-            <Text style={styles.resetButtonText}>Reiniciar Filtros</Text>
+            <Text style={{ color: colors.text }}>Reiniciar Filtros</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.applyButton}
-            onPress={onClose}
-          >
+          <TouchableOpacity style={styles.applyButton} onPress={onClose}>
             <Text style={styles.applyButtonText}>Aplicar</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </View>
+      </Animated.View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   overlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
     zIndex: 1000,
   },
   container: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '80%',
+    maxHeight: "80%",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
@@ -195,7 +279,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    maxHeight: '60%',
+    maxHeight: "90%",
   },
   section: {
     marginBottom: 20,
@@ -206,8 +290,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   optionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
   },
   optionButton: {
     paddingHorizontal: 16,
@@ -230,7 +314,7 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   footer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
@@ -241,7 +325,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: SIZES.radius,
-    alignItems: 'center',
+    alignItems: "center",
     marginRight: 8,
   },
   resetButtonText: {
@@ -253,7 +337,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: COLORS.primary,
     borderRadius: SIZES.radius,
-    alignItems: 'center',
+    alignItems: "center",
     marginLeft: 8,
   },
   applyButtonText: {

@@ -8,12 +8,22 @@ import {
   ActionSheetIOS,
   Platform,
   Alert,
+  Pressable,
 } from "react-native";
+import Animated, {
+  FadeInDown,
+  FadeIn,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  interpolate,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, Share2 } from "lucide-react-native";
 import { useOrderStore } from "@/store/orderStore";
 import { COLORS, FONTS, SIZES } from "@/constants/theme";
-import { ProductType, OrderStatus, Order } from "@/types";
+import { ProductType, OrderStatus, Order, Gasto } from "@/types";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import * as RNFS from "react-native-fs";
@@ -21,8 +31,10 @@ import * as XLSX from "xlsx";
 import { useThemeStore } from "@/store/themeStore";
 import { useFocusEffect } from "@react-navigation/native";
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export default function AnalyticsScreen() {
-  const { orders, lastUpdated } = useOrderStore();
+  const { orders, gastos, lastUpdated } = useOrderStore();
   const { theme } = useThemeStore();
   const colors = COLORS.themed(theme);
 
@@ -98,6 +110,31 @@ export default function AnalyticsScreen() {
   const totalPrice = useMemo(() => {
     return filteredOrders.reduce((acc, order) => acc + (order.price || 0), 0);
   }, [filteredOrders]);
+
+  // Filter gastos based on selected time frame
+  const filteredGastos = useMemo(() => {
+    return (gastos || []).filter((gasto) => {
+      const gastoDate = new Date(gasto.createdAt);
+      const now = new Date();
+
+      if (timeFrame === "day") {
+        return gastoDate.toDateString() === now.toDateString();
+      } else if (timeFrame === "week") {
+        const oneWeekAgo = new Date(now);
+        oneWeekAgo.setDate(now.getDate() - 7);
+        return gastoDate >= oneWeekAgo;
+      } else {
+        const oneMonthAgo = new Date(now);
+        oneMonthAgo.setMonth(now.getMonth() - 1);
+        return gastoDate >= oneMonthAgo;
+      }
+    });
+  }, [gastos, timeFrame, refreshKey, lastUpdated]);
+
+  // Calculate total gastos
+  const totalGastos = useMemo(() => {
+    return filteredGastos.reduce((acc, gasto) => acc + (gasto.price || 0), 0);
+  }, [filteredGastos]);
 
   const handleExportImage = async () => {
     if (analyticsRef.current) {
@@ -221,19 +258,95 @@ export default function AnalyticsScreen() {
         });
       });
 
+      // Track row for gastos table styling
+      const gastosStartRow = wsData.length + 1;
+
+      // Add Gastos (Expenses) section
+      wsData.push([]);
+      wsData.push([]);
+      wsData.push(["GASTOS"]);
+      const gastosHeaderRow = wsData.length;
+      wsData.push(["Nombre", "Precio", "Fecha"]);
+
+      // Sort gastos by date
+      const sortedGastos = [...filteredGastos].sort((a, b) => {
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      });
+
+      // Add gastos data
+      sortedGastos.forEach((gasto) => {
+        const date = new Date(gasto.createdAt).toLocaleDateString("es-ES");
+        wsData.push([gasto.name, `$${gasto.price.toFixed(2)}`, date]);
+      });
+
+      // Add total gastos row
+      wsData.push([]);
+      wsData.push(["TOTAL GASTOS:", `$${totalGastos.toFixed(2)}`, ""]);
+
       // Create worksheet and add to workbook
       const ws = XLSX.utils.aoa_to_sheet(wsData);
 
       // Style the worksheet
       ws["!cols"] = [
-        { wch: 20 }, // Gym name
-        { wch: 12 }, // Date
-        { wch: 15 }, // Status
+        { wch: 20 }, // Gym name / Gasto name
+        { wch: 12 }, // Date / Price
+        { wch: 15 }, // Status / Date
         { wch: 15 }, // Product
         { wch: 10 }, // Quantity
         { wch: 10 }, // Price
         { wch: 30 }, // Notes
       ];
+
+      // Helper function to create cell style with background color
+      const createCellStyle = (
+        bgColor: string,
+        fontColor: string = "000000",
+        bold: boolean = false
+      ) => ({
+        fill: { fgColor: { rgb: bgColor } },
+        font: { color: { rgb: fontColor }, bold },
+        alignment: { horizontal: "center" },
+      });
+
+      // Apply styling to header rows and gastos section
+      // Note: xlsx library has limited styling support, we'll set basic properties
+      // For full styling support, consider using xlsx-style or exceljs
+
+      // Style specific cells for gastos section
+      const gastosHeaderCellStyle = {
+        fill: { patternType: "solid", fgColor: { rgb: "FBBF24" } }, // Warning/Yellow color
+        font: { bold: true, color: { rgb: "000000" } },
+      };
+
+      const gastosTitleCellStyle = {
+        fill: { patternType: "solid", fgColor: { rgb: "F97316" } }, // Orange color
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+      };
+
+      const gastosTotalCellStyle = {
+        fill: { patternType: "solid", fgColor: { rgb: "EF4444" } }, // Red/Error color
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+      };
+
+      // Apply cell styles if the worksheet supports it
+      // GASTOS title row styling
+      if (ws[`A${gastosHeaderRow}`]) {
+        ws[`A${gastosHeaderRow}`].s = gastosTitleCellStyle;
+      }
+      if (ws[`A${gastosHeaderRow + 1}`]) {
+        ws[`A${gastosHeaderRow + 1}`].s = gastosHeaderCellStyle;
+        ws[`B${gastosHeaderRow + 1}`].s = gastosHeaderCellStyle;
+        ws[`C${gastosHeaderRow + 1}`].s = gastosHeaderCellStyle;
+      }
+
+      // Style total gastos row
+      const totalGastosRow = wsData.length;
+      if (ws[`A${totalGastosRow}`]) {
+        ws[`A${totalGastosRow}`].s = gastosTotalCellStyle;
+        ws[`B${totalGastosRow}`].s = gastosTotalCellStyle;
+      }
 
       XLSX.utils.book_append_sheet(wb, ws, "Análisis");
 
@@ -308,7 +421,7 @@ export default function AnalyticsScreen() {
           { borderBottomColor: colors.border, paddingBottom: 0 },
         ]}
       >
-        <Text style={[styles.title, { color: colors.text }]}>Análisis</Text>
+        <Text style={[styles.title, { color: colors.text }]}>📊 Análisis</Text>
         <View style={styles.timeFrameContainer}>
           <TouchableOpacity
             style={[
@@ -378,12 +491,18 @@ export default function AnalyticsScreen() {
             { backgroundColor: colors.background },
           ]}
         >
-          <View style={styles.dateContainer}>
+          <Animated.View
+            style={styles.dateContainer}
+            entering={FadeIn.duration(300)}
+          >
             <Calendar size={20} color={COLORS.textLight} />
             <Text style={styles.dateText}>{formatDate()}</Text>
-          </View>
+          </Animated.View>
 
-          <View style={[styles.statsCard, { backgroundColor: colors.white }]}>
+          <Animated.View
+            style={[styles.statsCard, { backgroundColor: colors.white }]}
+            entering={FadeInDown.delay(100).springify().damping(15)}
+          >
             <Text style={[styles.statsTitle, { color: colors.text }]}>
               Resumen
             </Text>
@@ -417,9 +536,12 @@ export default function AnalyticsScreen() {
                 Total pagado
               </Text>
             </View>
-          </View>
+          </Animated.View>
 
-          <View style={[styles.statsCard, { backgroundColor: colors.white }]}>
+          <Animated.View
+            style={[styles.statsCard, { backgroundColor: colors.white }]}
+            entering={FadeInDown.delay(200).springify().damping(15)}
+          >
             <Text style={[styles.statsTitle, { color: colors.text }]}>
               Productos por tipo
             </Text>
@@ -481,9 +603,12 @@ export default function AnalyticsScreen() {
                 </Text>
               </View>
             </View>
-          </View>
+          </Animated.View>
 
-          <View style={[styles.statsCard, { backgroundColor: colors.white }]}>
+          <Animated.View
+            style={[styles.statsCard, { backgroundColor: colors.white }]}
+            entering={FadeInDown.delay(300).springify().damping(15)}
+          >
             <Text style={[styles.statsTitle, { color: colors.text }]}>
               Estado de ordenes
             </Text>
@@ -515,10 +640,13 @@ export default function AnalyticsScreen() {
                 </View>
               </View>
             ))}
-          </View>
+          </Animated.View>
 
           {Object.keys(ordersByGym).length > 0 && (
-            <View style={[styles.statsCard, { backgroundColor: colors.white }]}>
+            <Animated.View
+              style={[styles.statsCard, { backgroundColor: colors.white }]}
+              entering={FadeInDown.delay(400).springify().damping(15)}
+            >
               <Text style={[styles.statsTitle, { color: colors.text }]}>
                 Top Gyms
               </Text>
@@ -526,7 +654,11 @@ export default function AnalyticsScreen() {
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 5)
                 .map(([gym, count], index) => (
-                  <View key={gym} style={styles.gymStatItem}>
+                  <Animated.View
+                    key={gym}
+                    style={styles.gymStatItem}
+                    entering={FadeIn.delay(450 + index * 50)}
+                  >
                     <Text style={[styles.gymRank, { color: colors.text }]}>
                       {index + 1}
                     </Text>
@@ -536,10 +668,65 @@ export default function AnalyticsScreen() {
                     <Text style={[styles.gymCount, { color: colors.text }]}>
                       {count} orden(es)
                     </Text>
-                  </View>
+                  </Animated.View>
                 ))}
-            </View>
+            </Animated.View>
           )}
+
+          {/* Gastos Section */}
+          <Animated.View
+            style={[styles.statsCard, { backgroundColor: colors.white }]}
+            entering={FadeInDown.delay(500).springify().damping(15)}
+          >
+            <Text style={[styles.statsTitle, { color: colors.text }]}>
+              Gastos
+            </Text>
+            {filteredGastos.length > 0 ? (
+              <>
+                {filteredGastos.map((gasto, index) => (
+                  <Animated.View
+                    key={gasto.id}
+                    style={styles.gastoItem}
+                    entering={FadeIn.delay(550 + index * 50)}
+                  >
+                    <View
+                      style={[
+                        styles.gastoIndicator,
+                        { backgroundColor: COLORS.warning },
+                      ]}
+                    />
+                    <Text style={[styles.gastoName, { color: colors.text }]}>
+                      {gasto.name}
+                    </Text>
+                    <Text style={[styles.gastoPrice, { color: colors.error }]}>
+                      -${gasto.price.toFixed(2)}
+                    </Text>
+                  </Animated.View>
+                ))}
+                <View
+                  style={[
+                    styles.gastoTotalContainer,
+                    { borderTopColor: colors.border },
+                  ]}
+                >
+                  <Text
+                    style={[styles.gastoTotalLabel, { color: colors.text }]}
+                  >
+                    Total Gastos:
+                  </Text>
+                  <Text
+                    style={[styles.gastoTotalValue, { color: colors.error }]}
+                  >
+                    -${totalGastos.toFixed(2)}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <Text style={[styles.noGastosText, { color: colors.textLight }]}>
+                No hay gastos registrados
+              </Text>
+            )}
+          </Animated.View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -729,5 +916,48 @@ const styles = StyleSheet.create({
   gymCount: {
     ...FONTS.body3,
     color: COLORS.textLight,
+  },
+  // Gastos styles
+  gastoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  gastoIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  gastoName: {
+    ...FONTS.body2,
+    flex: 1,
+  },
+  gastoPrice: {
+    ...FONTS.h3,
+    fontWeight: "600",
+  },
+  gastoTotalContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 16,
+    marginTop: 8,
+    borderTopWidth: 2,
+  },
+  gastoTotalLabel: {
+    ...FONTS.h3,
+    fontWeight: "600",
+  },
+  gastoTotalValue: {
+    ...FONTS.h2,
+    fontWeight: "700",
+  },
+  noGastosText: {
+    ...FONTS.body2,
+    textAlign: "center",
+    paddingVertical: 20,
   },
 });

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Order, OrderStore } from "@/types";
+import { Order, OrderStore, Gasto } from "@/types";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 
@@ -9,6 +9,7 @@ export const useOrderStore = create<OrderStore>()(
   persist(
     (set, get) => ({
       orders: [],
+      gastos: [],
       lastUpdated: Date.now(), // Add this to track when data was last updated
 
       addOrder: (order) =>
@@ -40,6 +41,34 @@ export const useOrderStore = create<OrderStore>()(
       clearOrders: () => set({ orders: [], lastUpdated: Date.now() }),
 
       setOrders: (orders) => set({ orders, lastUpdated: Date.now() }),
+
+      // Gastos (expenses) management
+      addGasto: (gasto) =>
+        set((state) => ({
+          gastos: [...state.gastos, gasto],
+          lastUpdated: Date.now(),
+        })),
+
+      updateGasto: (id, updatedGasto) =>
+        set((state) => ({
+          gastos: state.gastos.map((gasto) =>
+            gasto.id === id
+              ? {
+                  ...gasto,
+                  ...updatedGasto,
+                }
+              : gasto
+          ),
+          lastUpdated: Date.now(),
+        })),
+
+      deleteGasto: (id) =>
+        set((state) => ({
+          gastos: state.gastos.filter((gasto) => gasto.id !== id),
+          lastUpdated: Date.now(),
+        })),
+
+      clearGastos: () => set({ gastos: [], lastUpdated: Date.now() }),
 
       getOrdersAsJSON: () => {
         try {

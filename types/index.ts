@@ -7,6 +7,13 @@ export interface Product {
   quantity: number;
 }
 
+export interface Gasto {
+  id: string;
+  name: string;
+  price: number;
+  createdAt: string;
+}
+
 export interface Order {
   id: string;
   gymName: string;
@@ -20,6 +27,7 @@ export interface Order {
 
 export interface OrderStore {
   orders: Order[];
+  gastos: Gasto[];
   lastUpdated: number;
   addOrder: (order: Order) => void;
   updateOrder: (id: string, updatedOrder: Partial<Order>) => void;
@@ -29,4 +37,8 @@ export interface OrderStore {
   getOrdersAsJSON: () => string;
   importOrdersFromJSON: (json: string) => { success: boolean; message: string };
   exportOrdersToShare: () => Promise<{ success: boolean; message: string }>;
+  addGasto: (gasto: Gasto) => void;
+  updateGasto: (id: string, updatedGasto: Partial<Gasto>) => void;
+  deleteGasto: (id: string) => void;
+  clearGastos: () => void;
 }

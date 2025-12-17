@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Animated, { FadeIn, useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { COLORS, FONTS } from '@/constants/theme';
 import { OrderStatus } from '@/types';
 
@@ -9,6 +10,12 @@ interface StatusBadgeProps {
 }
 
 export default function StatusBadge({ status, size = 'normal' }: StatusBadgeProps) {
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   const getStatusColor = () => {
     switch (status) {
       case 'Entregado':
@@ -36,11 +43,15 @@ export default function StatusBadge({ status, size = 'normal' }: StatusBadgeProp
   };
 
   return (
-    <View style={[
-      styles.container,
-      { backgroundColor: getStatusColor() + '15' },
-      size === 'small' && styles.smallContainer
-    ]}>
+    <Animated.View 
+      entering={FadeIn.duration(200)}
+      style={[
+        styles.container,
+        { backgroundColor: getStatusColor() + '15' },
+        size === 'small' && styles.smallContainer,
+        animatedStyle
+      ]}
+    >
       <View style={[styles.dot, { backgroundColor: getStatusColor() }]} />
       <Text style={[
         styles.text,
@@ -49,7 +60,7 @@ export default function StatusBadge({ status, size = 'normal' }: StatusBadgeProp
       ]}>
         {getStatusLabel()}
       </Text>
-    </View>
+    </Animated.View>
   );
 }
 

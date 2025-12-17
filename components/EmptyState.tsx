@@ -1,6 +1,6 @@
-import React, { ReactNode } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, FONTS, SIZES } from '@/constants/theme';
+import React, { ReactNode } from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { COLORS, FONTS, SIZES } from "@/constants/theme";
 
 interface EmptyStateProps {
   title: string;
@@ -8,12 +8,14 @@ interface EmptyStateProps {
   icon: ReactNode;
 }
 
-export default function EmptyState({ title, description, icon }: EmptyStateProps) {
+export default function EmptyState({
+  title,
+  description,
+  icon,
+}: EmptyStateProps) {
   return (
     <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        {icon}
-      </View>
+      <View style={styles.iconContainer}>{icon}</View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
     </View>
@@ -23,8 +25,8 @@ export default function EmptyState({ title, description, icon }: EmptyStateProps
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: SIZES.padding * 2,
   },
   iconContainer: {
@@ -32,13 +34,13 @@ const styles = StyleSheet.create({
   },
   title: {
     ...FONTS.h2,
-    color: COLORS.text,
+    color: COLORS.textLight,
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   description: {
     ...FONTS.body2,
     color: COLORS.textLight,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });

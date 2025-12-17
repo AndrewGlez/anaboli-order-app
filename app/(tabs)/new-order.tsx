@@ -7,20 +7,34 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Pressable,
 } from "react-native";
+import Animated, {
+  FadeInDown,
+  FadeIn,
+  FadeOut,
+  Layout,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  SlideInRight,
+  SlideOutRight,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, PlusCircle, Trash2 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { COLORS, FONTS, SIZES } from "@/constants/theme";
 import { useOrderStore } from "@/store/orderStore";
-import { ProductType, OrderStatus } from "@/types";
+import { ProductType, OrderStatus, Gasto } from "@/types";
 import ProductSelector from "@/components/ProductSelector";
 import StatusSelector from "@/components/StatusSelector";
 import { useThemeStore } from "@/store/themeStore";
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export default function NewOrderScreen() {
   const router = useRouter();
-  const { addOrder } = useOrderStore();
+  const { addOrder, addGasto } = useOrderStore();
   const { theme } = useThemeStore();
 
   const colors = COLORS.themed(theme);
@@ -32,6 +46,9 @@ export default function NewOrderScreen() {
   const [status, setStatus] = useState<OrderStatus>("Entregado");
   const [notes, setNotes] = useState("");
   const [price, setPrice] = useState("");
+  
+  // Gastos (expenses) state
+  const [gastos, setGastos] = useState<Array<{ name: string; price: string }>>([]);
 
   const handleAddProduct = () => {
     setProducts([...products, { type: "A", quantity: 1 }]);
@@ -51,6 +68,23 @@ export default function NewOrderScreen() {
     const updatedProducts = [...products];
     updatedProducts.splice(index, 1);
     setProducts(updatedProducts);
+  };
+
+  // Gastos handlers
+  const handleAddGasto = () => {
+    setGastos([...gastos, { name: "", price: "" }]);
+  };
+
+  const handleUpdateGasto = (index: number, field: "name" | "price", value: string) => {
+    const updatedGastos = [...gastos];
+    updatedGastos[index] = { ...updatedGastos[index], [field]: value };
+    setGastos(updatedGastos);
+  };
+
+  const handleRemoveGasto = (index: number) => {
+    const updatedGastos = [...gastos];
+    updatedGastos.splice(index, 1);
+    setGastos(updatedGastos);
   };
 
   const handleSubmit = () => {
@@ -76,6 +110,20 @@ export default function NewOrderScreen() {
     };
 
     addOrder(newOrder);
+
+    // Save gastos
+    gastos.forEach((gasto) => {
+      if (gasto.name.trim() && gasto.price) {
+        const newGasto: Gasto = {
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          name: gasto.name.trim(),
+          price: parseFloat(gasto.price) || 0,
+          createdAt: new Date().toISOString(),
+        };
+        addGasto(newGasto);
+      }
+    });
+
     Alert.alert("Éxito", "Orden creada con éxito");
 
     // Reset form
@@ -84,6 +132,7 @@ export default function NewOrderScreen() {
     setStatus("Entregado");
     setNotes("");
     setPrice("");
+    setGastos([]);
 
     // Navigate back to orders
     router.push("/");
@@ -93,7 +142,10 @@ export default function NewOrderScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <View style={styles.header}>
+      <Animated.View 
+        style={styles.header}
+        entering={FadeInDown.duration(300)}
+      >
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
@@ -103,10 +155,13 @@ export default function NewOrderScreen() {
         <Text style={[styles.title, { color: colors.text }]}>
           Crear nueva orden
         </Text>
-      </View>
+      </Animated.View>
 
       <ScrollView style={styles.form}>
-        <View style={styles.formGroup}>
+        <Animated.View 
+          style={styles.formGroup}
+          entering={FadeInDown.delay(100).springify()}
+        >
           <Text style={[styles.label, { color: colors.text }]}>Nombre</Text>
           <TextInput
             style={[
@@ -122,14 +177,20 @@ export default function NewOrderScreen() {
             placeholder="Ingresa el nombre del gym"
             placeholderTextColor={colors.textLight}
           />
-        </View>
+        </Animated.View>
 
-        <View style={styles.formGroup}>
+        <Animated.View 
+          style={styles.formGroup}
+          entering={FadeInDown.delay(150).springify()}
+        >
           <Text style={[styles.label, { color: colors.text }]}>Productos</Text>
           {products.map((product, index) => (
-            <View
+            <Animated.View
               key={index}
               style={[styles.productRow, { borderColor: colors.primary }]}
+              entering={SlideInRight.springify().damping(15)}
+              exiting={SlideOutRight.springify()}
+              layout={Layout.springify()}
             >
               <ProductSelector
                 value={product.type}
@@ -159,7 +220,7 @@ export default function NewOrderScreen() {
               >
                 <Trash2 size={20} color={colors.error} />
               </TouchableOpacity>
-            </View>
+            </Animated.View>
           ))}
 
           <TouchableOpacity
@@ -171,14 +232,20 @@ export default function NewOrderScreen() {
               Agregar Productos
             </Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
-        <View style={styles.formGroup}>
+        <Animated.View 
+          style={styles.formGroup}
+          entering={FadeInDown.delay(200).springify()}
+        >
           <Text style={[styles.label, { color: colors.text }]}>Estado</Text>
           <StatusSelector value={status} onChange={setStatus} />
-        </View>
+        </Animated.View>
 
-        <View style={styles.formGroup}>
+        <Animated.View 
+          style={styles.formGroup}
+          entering={FadeInDown.delay(250).springify()}
+        >
           <Text style={[styles.label, { color: colors.text }]}>Precio</Text>
           <TextInput
             style={[
@@ -195,9 +262,12 @@ export default function NewOrderScreen() {
             placeholderTextColor={colors.textLight}
             keyboardType="numeric"
           />
-        </View>
+        </Animated.View>
 
-        <View style={styles.formGroup}>
+        <Animated.View 
+          style={styles.formGroup}
+          entering={FadeInDown.delay(300).springify()}
+        >
           <Text style={[styles.label, { color: colors.text }]}>Notas</Text>
           <TextInput
             style={[
@@ -217,7 +287,69 @@ export default function NewOrderScreen() {
             numberOfLines={4}
             textAlignVertical="top"
           />
-        </View>
+        </Animated.View>
+
+        <Animated.View 
+          style={styles.formGroup}
+          entering={FadeInDown.delay(350).springify()}
+        >
+          <Text style={[styles.label, { color: colors.text }]}>Gastos</Text>
+          {gastos.map((gasto, index) => (
+            <Animated.View
+              key={index}
+              style={[styles.gastoRow, { borderColor: colors.warning }]}
+              entering={SlideInRight.springify().damping(15)}
+              exiting={SlideOutRight.springify()}
+              layout={Layout.springify()}
+            >
+              <TextInput
+                style={[
+                  styles.gastoNameInput,
+                  {
+                    backgroundColor: colors.white,
+                    borderColor: colors.border,
+                    color: colors.text,
+                  },
+                ]}
+                value={gasto.name}
+                onChangeText={(text) => handleUpdateGasto(index, "name", text)}
+                placeholder="Nombre del gasto"
+                placeholderTextColor={colors.textLight}
+              />
+              <TextInput
+                style={[
+                  styles.gastoPriceInput,
+                  {
+                    backgroundColor: colors.white,
+                    borderColor: colors.border,
+                    color: colors.text,
+                  },
+                ]}
+                value={gasto.price}
+                onChangeText={(text) => handleUpdateGasto(index, "price", text)}
+                placeholder="$0.00"
+                placeholderTextColor={colors.textLight}
+                keyboardType="numeric"
+              />
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => handleRemoveGasto(index)}
+              >
+                <Trash2 size={20} color={colors.error} />
+              </TouchableOpacity>
+            </Animated.View>
+          ))}
+
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: colors.warning }]}
+            onPress={handleAddGasto}
+          >
+            <PlusCircle size={20} color={colors.white} />
+            <Text style={[styles.addButtonText, { color: colors.white }]}>
+              Agregar Gasto
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
 
         
       </ScrollView>
@@ -301,6 +433,29 @@ const styles = StyleSheet.create({
   addButtonText: {
     ...FONTS.body2,
     marginLeft: 8,
+  },
+  gastoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+    borderLeftWidth: 3,
+    paddingLeft: 10,
+  },
+  gastoNameInput: {
+    flex: 1,
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    padding: 12,
+    ...FONTS.body2,
+  },
+  gastoPriceInput: {
+    width: 100,
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    padding: 12,
+    marginHorizontal: 10,
+    ...FONTS.body2,
+    textAlign: "center",
   },
   footer: {
     padding: SIZES.padding,

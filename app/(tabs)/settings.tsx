@@ -27,6 +27,7 @@ import { COLORS, FONTS, SIZES } from "@/constants/theme";
 import { useOrderStore } from "@/store/orderStore";
 import { useThemeStore } from "@/store/themeStore";
 import Constants from "expo-constants";
+import { Linking } from "react-native";
 
 export default function SettingsScreen() {
   const {
@@ -228,12 +229,22 @@ export default function SettingsScreen() {
           <View style={styles.aboutContainer}>
             <Info size={16} color={colors.textLight} style={styles.infoIcon} />
             <Text style={[styles.aboutDetails, { color: colors.textLight }]}>
-              {Constants.expoConfig?.version}
+              Release {Constants.expoConfig?.version}.
             </Text>
           </View>
           <Text style={[styles.aboutDetails, { color: colors.textLight }]}>
-            Una aplicación para gestionar tus pedidos. Desarrollada por [Andrew
-            González].
+            Una aplicación para gestionar tus pedidos. Desarrollada por{" "}
+            <Text
+              onPress={() => Linking.openURL("https://github.com/AndrewGlez")}
+              style={{
+                fontWeight: "bold",
+                color: colors.primary,
+                textDecorationLine: "underline",
+              }}
+            >
+              Andrew González
+            </Text>
+            .
           </Text>
         </View>
       </ScrollView>

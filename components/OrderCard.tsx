@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
 import { MoreVertical, Pencil, Trash2 } from 'lucide-react-native';
+import Animated, { 
+  FadeIn, 
+  FadeOut, 
+  FadeInDown, 
+  SlideInRight,
+  SlideOutRight,
+  useSharedValue, 
+  useAnimatedStyle, 
+  withSpring,
+  Layout,
+} from 'react-native-reanimated';
 import { Order, ProductType, OrderStatus } from '@/types';
 import { COLORS, FONTS, SHADOWS, SIZES } from '@/constants/theme';
 import StatusBadge from './StatusBadge';
@@ -8,11 +19,14 @@ import OrderDetails from './OrderDetails';
 import { useOrderStore } from '@/store/orderStore';
 import { useThemeStore } from '@/store/themeStore';
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 interface OrderCardProps {
   order: Order;
+  index?: number;
 }
 
-export default function OrderCard({ order }: OrderCardProps) {
+export default function OrderCard({ order, index = 0 }: OrderCardProps) {
   const { theme } = useThemeStore();
 
   const colors = COLORS.themed(theme);
@@ -20,6 +34,21 @@ export default function OrderCard({ order }: OrderCardProps) {
   const [showDetails, setShowDetails] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Animation values
+  const scale = useSharedValue(1);
+  
+  const cardAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.98, { damping: 15, stiffness: 300 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+  };
 
   const getProductIcon = (type: ProductType) => {
     switch (type) {
@@ -50,8 +79,16 @@ export default function OrderCard({ order }: OrderCardProps) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.white, borderColor: colors.border }]}>
-      <TouchableOpacity onPress={toggleDetails} activeOpacity={0.7}>
+    <Animated.View 
+      entering={FadeInDown.delay(index * 50).springify().damping(15)}
+      layout={Layout.springify().damping(15)}
+      style={[styles.container, { backgroundColor: colors.white, borderColor: colors.border }, cardAnimatedStyle]}
+    >
+      <AnimatedPressable 
+        onPress={toggleDetails} 
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
         <View style={[styles.cardHeader, { borderBottomColor: colors.border }]}>
           <Text style={[styles.gymName, { color: colors.text }]}>{order.gymName}</Text>
           <View style={styles.headerRight}>
@@ -66,10 +103,14 @@ export default function OrderCard({ order }: OrderCardProps) {
         </View>
 
         <View style={styles.productsContainer}>
-          {order.products.map((product, index) => {
+          {order.products.map((product, idx) => {
             const icon = getProductIcon(product.type);
             return (
-              <View key={index} style={styles.productItem}>
+              <Animated.View 
+                key={idx} 
+                style={styles.productItem}
+                entering={FadeIn.delay(100 + idx * 50)}
+              >
                 <View style={[styles.productIcon, { backgroundColor: icon.color + '15' }]}>
                   <Text style={[styles.productIconText, { color: icon.color }]}>{icon.label}</Text>
                 </View>
@@ -82,7 +123,7 @@ export default function OrderCard({ order }: OrderCardProps) {
                   </Text>
                   <Text style={[styles.productQuantity, { color: colors.textLight }]}>x{product.quantity}</Text>
                 </View>
-              </View>
+              </Animated.View>
             );
           })}
         </View>
@@ -103,10 +144,14 @@ export default function OrderCard({ order }: OrderCardProps) {
             {showDetails ? 'Ocultar Detalles' : 'Ver Detalles'}
           </Text>
         </View>
-      </TouchableOpacity>
+      </AnimatedPressable>
 
       {showOptions && (
-        <View style={[styles.optionsMenu, { backgroundColor: colors.white, borderColor: colors.border }]}>
+        <Animated.View 
+          entering={FadeIn.duration(150).springify()}
+          exiting={FadeOut.duration(100)}
+          style={[styles.optionsMenu, { backgroundColor: colors.white, borderColor: colors.border }]}
+        >
           <TouchableOpacity
             style={styles.optionItem}
             onPress={() => {
@@ -125,21 +170,26 @@ export default function OrderCard({ order }: OrderCardProps) {
             <Trash2 size={16} color={colors.error} style={styles.optionIcon} />
             <Text style={[styles.optionText, { color: colors.error }]}>Eliminar</Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
       )}
 
       {showDetails && (
-        <OrderDetails
-          order={order}
-          isEditing={isEditing}
-          onClose={() => {
-            setShowDetails(false);
-            setIsEditing(false);
-          }}
-          onSave={handleSaveEdit}
-        />
+        <Animated.View
+          entering={FadeInDown.duration(250).springify().damping(15)}
+          exiting={FadeOut.duration(150)}
+        >
+          <OrderDetails
+            order={order}
+            isEditing={isEditing}
+            onClose={() => {
+              setShowDetails(false);
+              setIsEditing(false);
+            }}
+            onSave={handleSaveEdit}
+          />
+        </Animated.View>
       )}
-    </View>
+    </Animated.View>
   );
 }
 
