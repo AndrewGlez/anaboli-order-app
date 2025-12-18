@@ -154,10 +154,18 @@ export default function OrderDetails({
           </Text>
           {isEditing ? (
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  color: colors.text,
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                },
+              ]}
               value={gymName}
               onChangeText={setGymName}
               placeholder="Ingrese el nombre del gym"
+              placeholderTextColor={colors.textLight}
             />
           ) : (
             <Text style={[styles.sectionContent, { color: colors.text }]}>
@@ -231,7 +239,14 @@ export default function OrderDetails({
                     }
                   />
                   <TextInput
-                    style={styles.quantityInput}
+                    style={[
+                      styles.quantityInput,
+                      {
+                        color: colors.text,
+                        backgroundColor: colors.background,
+                        borderColor: colors.border,
+                      },
+                    ]}
                     value={product.quantity.toString()}
                     onChangeText={(text) => {
                       const quantity = parseInt(text) || 0;
@@ -290,19 +305,30 @@ export default function OrderDetails({
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Notas</Text>
+          <Text style={[styles.sectionLabel, { color: colors.textLight }]}>
+            Notas
+          </Text>
           {isEditing ? (
             <TextInput
-              style={[styles.input, styles.notesInput]}
+              style={[
+                styles.input,
+                styles.notesInput,
+                {
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                  color: colors.textLight,
+                },
+              ]}
               value={notes}
               onChangeText={setNotes}
               placeholder="Agregar notas (opcional)"
+              placeholderTextColor={colors.textLight}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
             />
           ) : (
-            <Text style={[styles.sectionContent, { color: colors.text }]}>
+            <Text style={[styles.sectionContent, { color: colors.textLight }]}>
               {order.notes || "No hay notas disponibles"}
             </Text>
           )}
@@ -319,7 +345,13 @@ export default function OrderDetails({
             {gastos.map((gasto) => (
               <View
                 key={gasto.id}
-                style={[styles.gastoRow, { borderColor: colors.warning }]}
+                style={[
+                  styles.gastoRow,
+                  {
+                    borderColor: colors.warning,
+                    backgroundColor: colors.background,
+                  },
+                ]}
               >
                 <View style={styles.gastoInfo}>
                   <Text style={[styles.gastoName, { color: colors.text }]}>

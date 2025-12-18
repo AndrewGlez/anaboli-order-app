@@ -111,25 +111,16 @@ export default function AnalyticsScreen() {
     return filteredOrders.reduce((acc, order) => acc + (order.price || 0), 0);
   }, [filteredOrders]);
 
-  // Filter gastos based on selected time frame
+  // Filter gastos - only show gastos from the same day they were registered
   const filteredGastos = useMemo(() => {
     return (gastos || []).filter((gasto) => {
       const gastoDate = new Date(gasto.createdAt);
       const now = new Date();
 
-      if (timeFrame === "day") {
-        return gastoDate.toDateString() === now.toDateString();
-      } else if (timeFrame === "week") {
-        const oneWeekAgo = new Date(now);
-        oneWeekAgo.setDate(now.getDate() - 7);
-        return gastoDate >= oneWeekAgo;
-      } else {
-        const oneMonthAgo = new Date(now);
-        oneMonthAgo.setMonth(now.getMonth() - 1);
-        return gastoDate >= oneMonthAgo;
-      }
+      // Always filter gastos to only show same day
+      return gastoDate.toDateString() === now.toDateString();
     });
-  }, [gastos, timeFrame, refreshKey, lastUpdated]);
+  }, [gastos, refreshKey, lastUpdated]);
 
   // Calculate total gastos
   const totalGastos = useMemo(() => {
@@ -1005,8 +996,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   gastoTotalValue: {
-    ...FONTS.h2,
-    fontWeight: "700",
+    ...FONTS.h3,
   },
   noGastosText: {
     ...FONTS.body2,
