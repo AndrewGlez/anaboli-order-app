@@ -5,8 +5,14 @@ import { PhoneTabs } from '../../../components/navigation/PhoneTabs';
 // Mock expo-router Tabs
 jest.mock('expo-router', () => {
   const React = require('react');
-  const MockTabs = (props: any) => React.createElement('Tabs', null, props.children);
-  MockTabs.Screen = (props: any) => React.createElement('Tabs.Screen', props);
+  const MockTabs = ((props: any) =>
+    React.createElement('Tabs', null, props.children)) as unknown as React.FC & {
+    Screen: React.FC;
+  };
+  const MockTabsScreen = (props: any) => React.createElement('Tabs.Screen', props);
+  MockTabsScreen.displayName = 'MockTabsScreen';
+  MockTabs.Screen = MockTabsScreen;
+  MockTabs.displayName = 'MockTabs';
   return {
     Tabs: MockTabs,
     usePathname: () => '/',

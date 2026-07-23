@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import { COLORS } from '@/constants/theme';
@@ -9,7 +9,7 @@ export function UpdateToast() {
   const { theme } = useThemeStore();
   const colors = COLORS.themed(theme);
   const [visible, setVisible] = useState(false);
-  const opacity = new Animated.Value(0);
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (updateAvailable) {
