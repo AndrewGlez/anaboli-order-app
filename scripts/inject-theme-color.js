@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const DIST_DIR = path.join(__dirname, '..', 'dist');
+const DIST_DIR = path.resolve(process.cwd(), 'dist');
 const THEME_COLOR = '#0a7d4b';
 
 const metaTag = `<meta name="theme-color" content="${THEME_COLOR}" />`;
