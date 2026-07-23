@@ -26,8 +26,8 @@ import { COLORS, FONTS, SIZES } from "@/constants/theme";
 import { ProductType, OrderStatus, Order, Gasto } from "@/types";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
-import * as RNFS from "react-native-fs";
 import * as XLSX from "xlsx";
+import { saveXlsxToFile, removeTempFile } from "@/services/web/fileExport";
 import { useThemeStore } from "@/store/themeStore";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -346,25 +346,22 @@ export default function AnalyticsScreen() {
       const filename = `analytics_${timeFrame}_${
         now.toISOString().split("T")[0]
       }_${now.getHours()}-${String(now.getMinutes()).padStart(2, "0")}.xlsx`;
-      const tempPath = `${RNFS.DocumentDirectoryPath}/${filename}`;
 
-      // Write file
+      // Write file via platform-aware service
       const wbout = XLSX.write(wb, { type: "base64", bookType: "xlsx" });
-      await RNFS.writeFile(tempPath, wbout, "base64");
+      const filePath = await saveXlsxToFile(wbout, filename);
 
-      // Share the file
-      await Sharing.shareAsync(`file://${tempPath}`, {
-        mimeType:
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        dialogTitle: "Guardar Reporte de Análisis",
-        UTI: "org.openxmlformats.spreadsheetml.sheet",
-      });
+      // Share the file (native only — web download already triggered)
+      if (filePath) {
+        await Sharing.shareAsync(`file://${filePath}`, {
+          mimeType:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          dialogTitle: "Guardar Reporte de Análisis",
+          UTI: "org.openxmlformats.spreadsheetml.sheet",
+        });
 
-      // Clean up temp file
-      try {
-        await RNFS.unlink(tempPath);
-      } catch (cleanupError) {
-        console.warn("Error cleaning up temp file:", cleanupError);
+        // Clean up temp file
+        await removeTempFile(filePath);
       }
     } catch (error) {
       console.error("Error exporting Excel:", error);

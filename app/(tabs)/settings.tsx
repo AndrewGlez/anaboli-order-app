@@ -9,7 +9,6 @@ import {
   ScrollView,
   TextInput,
   Modal,
-  Clipboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -28,6 +27,7 @@ import { useOrderStore } from "@/store/orderStore";
 import { useThemeStore } from "@/store/themeStore";
 import Constants from "expo-constants";
 import { Linking } from "react-native";
+import { copyToClipboard, readFromClipboard } from "@/services/web/clipboard";
 
 export default function SettingsScreen() {
   const {
@@ -66,7 +66,7 @@ export default function SettingsScreen() {
   const handleExportData = async () => {
     try {
       const jsonData = getOrdersAsJSON();
-      await Clipboard.setString(jsonData);
+      await copyToClipboard(jsonData);
       Alert.alert(
         "Datos Exportados",
         "Los datos han sido copiados al portapapeles como JSON. Puedes pegarlos en un archivo de texto para guardarlos."
@@ -115,7 +115,7 @@ export default function SettingsScreen() {
 
   const handlePasteFromClipboard = async () => {
     try {
-      const clipboardContent = await Clipboard.getString();
+      const clipboardContent = await readFromClipboard();
       setImportText(clipboardContent);
     } catch (error) {
       Alert.alert(

@@ -39,3 +39,60 @@ export async function exportToXlsx(
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+/**
+ * Save a base64-encoded xlsx buffer to a file.
+ * On web: triggers a Blob download (no react-native-fs needed).
+ * On native: writes to the document directory via react-native-fs.
+ * Returns the file path/URL for native sharing, or undefined for web.
+ */
+export async function saveXlsxToFile(
+  base64Data: string,
+  filename: string
+): Promise<string | undefined> {
+  if (Platform.OS === 'web') {
+    // Web: decode base64 to Uint8Array, create Blob, trigger download
+    const binaryString = atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    const blob = new Blob([bytes], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    return undefined;
+  }
+
+  // Native: use react-native-fs
+  const RNFS = require('react-native-fs');
+  const tempPath = `${RNFS.DocumentDirectoryPath}/${filename}`;
+  await RNFS.writeFile(tempPath, base64Data, 'base64');
+  return tempPath;
+}
+
+/**
+ * Remove a temporary file.
+ * On web: no-op (Blob URLs are already revoked).
+ * On native: uses react-native-fs unlink.
+ */
+export async function removeTempFile(filePath: string): Promise<void> {
+  if (Platform.OS === 'web') {
+    return;
+  }
+  const RNFS = require('react-native-fs');
+  try {
+    await RNFS.unlink(filePath);
+  } catch {
+    // Ignore cleanup errors
+  }
+}
