@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { COLORS } from '@/constants/theme';
 import { useThemeStore } from '@/store/themeStore';
@@ -23,35 +23,57 @@ export function DesktopSidebar({ activeHref }: DesktopSidebarProps) {
         {TAB_ITEMS.map((item) => {
           const isActive = activeHref === item.href;
           return (
-            <TouchableOpacity
+            <SidebarItem
               key={item.name}
-              style={[
-                styles.navItem,
-                isActive && { backgroundColor: colors.primary + '10' },
-              ]}
+              item={item}
+              isActive={isActive}
+              colors={colors}
               onPress={() => router.push(item.href as any)}
-              accessibilityRole="link"
-              accessibilityState={{ selected: isActive }}
-              accessibilityLabel={isActive ? `${item.title} - current page` : item.title}
-            >
-              <item.icon
-                size={20}
-                color={isActive ? colors.primary : colors.textLight}
-              />
-              <Text
-                style={[
-                  styles.navLabel,
-                  { color: isActive ? colors.primary : colors.textLight },
-                  isActive && styles.activeLabel,
-                ]}
-              >
-                {item.title}
-              </Text>
-            </TouchableOpacity>
+            />
           );
         })}
       </View>
     </View>
+  );
+}
+
+function SidebarItem({ item, isActive, colors, onPress }: {
+  item: typeof TAB_ITEMS[number];
+  isActive: boolean;
+  colors: ReturnType<typeof COLORS.themed>;
+  onPress: () => void;
+}) {
+  const [focused, setFocused] = useState(false);
+
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.navItem,
+        isActive && { backgroundColor: colors.primary + '10' },
+        pressed && styles.pressed,
+      ]}
+      onPress={onPress}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      accessibilityRole="link"
+      accessibilityState={{ selected: isActive }}
+      accessibilityLabel={isActive ? `${item.title} - current page` : item.title}
+    >
+      {focused && <View style={styles.focusIndicator} />}
+      <item.icon
+        size={20}
+        color={isActive ? colors.primary : colors.textLight}
+      />
+      <Text
+        style={[
+          styles.navLabel,
+          { color: isActive ? colors.primary : colors.textLight },
+          isActive && styles.activeLabel,
+        ]}
+      >
+        {item.title}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -87,5 +109,16 @@ const styles = StyleSheet.create({
   },
   activeLabel: {
     fontFamily: 'Montserrat_600SemiBold',
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  focusIndicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
+    backgroundColor: COLORS.primary,
   },
 });

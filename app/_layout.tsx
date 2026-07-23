@@ -12,16 +12,38 @@ import { UpdateToast } from '@/components/UpdateToast';
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
-// Register service worker after first successful visit
+// Register service worker only after first successful online visit
 function useServiceWorkerRegistration() {
   useEffect(() => {
     if (Platform.OS !== 'web') return;
     if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
 
-    // Register SW after first successful visit
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
-      console.log('SW registration failed:', err);
-    });
+    const registerSW = () => {
+      navigator.serviceWorker.register('/sw.js').catch((err) => {
+        console.log('SW registration failed:', err);
+      });
+    };
+
+    // Only register when online — gate on navigator.onLine
+    if (navigator.onLine) {
+      // Defer until after the page fully loads
+      if (document.readyState === 'complete') {
+        registerSW();
+      } else {
+        window.addEventListener('load', registerSW, { once: true });
+      }
+    }
+
+    // Also register when coming back online (deferred visit pattern)
+    const handleOnline = () => {
+      registerSW();
+      window.removeEventListener('online', handleOnline);
+    };
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
   }, []);
 }
 

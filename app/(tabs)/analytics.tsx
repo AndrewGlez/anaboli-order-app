@@ -7,7 +7,6 @@ import {
   ScrollView,
   ActionSheetIOS,
   Platform,
-  Alert,
   Pressable,
 } from "react-native";
 import Animated, {
@@ -30,6 +29,7 @@ import * as XLSX from "xlsx";
 import { saveXlsxToFile, removeTempFile } from "@/services/web/fileExport";
 import { useThemeStore } from "@/store/themeStore";
 import { useFocusEffect } from "@react-navigation/native";
+import { showAlert } from "@/services/web/notifications";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -365,7 +365,7 @@ export default function AnalyticsScreen() {
       }
     } catch (error) {
       console.error("Error exporting Excel:", error);
-      Alert.alert(
+      showAlert(
         "Error",
         "Hubo un problema al exportar el archivo Excel. Por favor intente nuevamente."
       );
