@@ -1,4 +1,5 @@
 // @ts-nocheck
+/* eslint-disable no-undef */
 // Service Worker for PWA offline support
 // Cache-first for precached shell, network-first for navigation
 

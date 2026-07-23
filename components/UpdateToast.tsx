@@ -20,7 +20,7 @@ export function UpdateToast() {
         useNativeDriver: true,
       }).start();
     }
-  }, [updateAvailable]);
+  }, [updateAvailable, opacity]);
 
   const handleUpdate = () => {
     // Send skipWaiting message to service worker

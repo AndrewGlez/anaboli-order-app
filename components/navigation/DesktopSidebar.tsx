@@ -32,7 +32,7 @@ export function DesktopSidebar({ activeHref }: DesktopSidebarProps) {
               onPress={() => router.push(item.href as any)}
               accessibilityRole="link"
               accessibilityState={{ selected: isActive }}
-              accessibilityCurrent="page"
+              accessibilityLabel={isActive ? `${item.title} - current page` : item.title}
             >
               <item.icon
                 size={20}

@@ -10,9 +10,6 @@ export async function exportToXlsx(
 ): Promise<void> {
   if (Platform.OS !== 'web') {
     // On native, use expo-file-system and expo-sharing
-    const FileSystem = require('expo-file-system');
-    const Sharing = require('expo-sharing');
-    // Native implementation would go here
     throw new Error('Native export not implemented in web service');
   }
 
