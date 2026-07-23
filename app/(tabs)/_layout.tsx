@@ -21,47 +21,55 @@ export default function TabLayout() {
     return "/";
   };
 
-  // Desktop: sidebar layout
+  // Desktop: sidebar layout. <Tabs> provides the route container only;
+  // tabBar is suppressed because DesktopSidebar handles navigation.
   if (breakpoint === "desktop") {
     return (
       <View style={styles.desktopContainer}>
         <DesktopSidebar activeHref={getActiveHref()} />
-        <Tabs
-          screenOptions={{
-            headerShown: false,
-            sceneStyle: { backgroundColor: colors.background },
-          }}
-        >
-          <Tabs.Screen name="index" options={{ title: "Ordenes" }} />
-          <Tabs.Screen name="new-order" options={{ title: "Nuevo" }} />
-          <Tabs.Screen name="analytics" options={{ title: "Análisis" }} />
-          <Tabs.Screen name="settings" options={{ title: "Ajustes" }} />
-        </Tabs>
+        <View style={styles.content}>
+          <Tabs
+            screenOptions={{
+              headerShown: false,
+              tabBar: () => null,
+              sceneStyle: { backgroundColor: colors.background },
+            }}
+          >
+            <Tabs.Screen name="index" options={{ title: "Ordenes" }} />
+            <Tabs.Screen name="new-order" options={{ title: "Nuevo" }} />
+            <Tabs.Screen name="analytics" options={{ title: "Análisis" }} />
+            <Tabs.Screen name="settings" options={{ title: "Ajustes" }} />
+          </Tabs>
+        </View>
       </View>
     );
   }
 
-  // Tablet: top navigation
+  // Tablet: top navigation. <Tabs> provides the route container only;
+  // tabBar is suppressed because TabletTopNav handles navigation.
   if (breakpoint === "tablet") {
     return (
       <View style={styles.tabletContainer}>
         <TabletTopNav activeHref={getActiveHref()} />
-        <Tabs
-          screenOptions={{
-            headerShown: false,
-            sceneStyle: { backgroundColor: colors.background },
-          }}
-        >
-          <Tabs.Screen name="index" options={{ title: "Ordenes" }} />
-          <Tabs.Screen name="new-order" options={{ title: "Nuevo" }} />
-          <Tabs.Screen name="analytics" options={{ title: "Análisis" }} />
-          <Tabs.Screen name="settings" options={{ title: "Ajustes" }} />
-        </Tabs>
+        <View style={styles.content}>
+          <Tabs
+            screenOptions={{
+              headerShown: false,
+              tabBar: () => null,
+              sceneStyle: { backgroundColor: colors.background },
+            }}
+          >
+            <Tabs.Screen name="index" options={{ title: "Ordenes" }} />
+            <Tabs.Screen name="new-order" options={{ title: "Nuevo" }} />
+            <Tabs.Screen name="analytics" options={{ title: "Análisis" }} />
+            <Tabs.Screen name="settings" options={{ title: "Ajustes" }} />
+          </Tabs>
+        </View>
       </View>
     );
   }
 
-  // Phone: bottom tabs
+  // Phone: bottom tabs. PhoneTabs is the single <Tabs> with the styled bar.
   return <PhoneTabs />;
 }
 
@@ -71,6 +79,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   tabletContainer: {
+    flex: 1,
+  },
+  content: {
     flex: 1,
   },
 });
