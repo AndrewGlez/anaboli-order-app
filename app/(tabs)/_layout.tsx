@@ -1,4 +1,5 @@
-import { Tabs, usePathname } from "expo-router";
+import { usePathname } from "expo-router";
+import { Tabs, TabSlot, TabTrigger, TabList } from "expo-router/ui";
 import { StyleSheet, View } from "react-native";
 import { COLORS } from "@/constants/theme";
 import { useThemeStore } from "@/store/themeStore";
@@ -21,51 +22,44 @@ export default function TabLayout() {
     return "/";
   };
 
-  // Desktop: sidebar layout. <Tabs> provides the route container only;
-  // tabBar is suppressed because DesktopSidebar handles navigation.
+  // Desktop: sidebar layout. Use the headless Tabs from expo-router/ui so no
+  // default bottom tab bar is rendered; DesktopSidebar handles navigation.
   if (breakpoint === "desktop") {
     return (
-      <View style={styles.desktopContainer}>
-        <DesktopSidebar activeHref={getActiveHref()} />
-        <View style={styles.content}>
-          <Tabs
-            screenOptions={{
-              headerShown: false,
-              tabBar: () => null,
-              sceneStyle: { backgroundColor: colors.background },
-            }}
-          >
-            <Tabs.Screen name="index" options={{ title: "Ordenes" }} />
-            <Tabs.Screen name="new-order" options={{ title: "Nuevo" }} />
-            <Tabs.Screen name="analytics" options={{ title: "Análisis" }} />
-            <Tabs.Screen name="settings" options={{ title: "Ajustes" }} />
-          </Tabs>
+      <Tabs>
+        <View style={styles.desktopContainer}>
+          <DesktopSidebar activeHref={getActiveHref()} />
+          <View style={styles.content}>
+            <TabSlot />
+          </View>
         </View>
-      </View>
+        <TabList>
+          <TabTrigger name="index" href="/" />
+          <TabTrigger name="new-order" href="/new-order" />
+          <TabTrigger name="analytics" href="/analytics" />
+          <TabTrigger name="settings" href="/settings" />
+        </TabList>
+      </Tabs>
     );
   }
 
-  // Tablet: top navigation. <Tabs> provides the route container only;
-  // tabBar is suppressed because TabletTopNav handles navigation.
+  // Tablet: top navigation. Same headless Tabs as desktop.
   if (breakpoint === "tablet") {
     return (
-      <View style={styles.tabletContainer}>
-        <TabletTopNav activeHref={getActiveHref()} />
-        <View style={styles.content}>
-          <Tabs
-            screenOptions={{
-              headerShown: false,
-              tabBar: () => null,
-              sceneStyle: { backgroundColor: colors.background },
-            }}
-          >
-            <Tabs.Screen name="index" options={{ title: "Ordenes" }} />
-            <Tabs.Screen name="new-order" options={{ title: "Nuevo" }} />
-            <Tabs.Screen name="analytics" options={{ title: "Análisis" }} />
-            <Tabs.Screen name="settings" options={{ title: "Ajustes" }} />
-          </Tabs>
+      <Tabs>
+        <View style={styles.tabletContainer}>
+          <TabletTopNav activeHref={getActiveHref()} />
+          <View style={styles.content}>
+            <TabSlot />
+          </View>
         </View>
-      </View>
+        <TabList>
+          <TabTrigger name="index" href="/" />
+          <TabTrigger name="new-order" href="/new-order" />
+          <TabTrigger name="analytics" href="/analytics" />
+          <TabTrigger name="settings" href="/settings" />
+        </TabList>
+      </Tabs>
     );
   }
 
