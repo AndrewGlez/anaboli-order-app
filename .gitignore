@@ -43,3 +43,10 @@ yarn.lock
 package-lock.json
 pnpm-lock.yaml
 bun.lock
+/.atl
+/.direnv
+/.envrc
+# Local Pi runtime state
+.atl/
+/.pi/gentle-ai
+/openspec
