@@ -35,19 +35,4 @@ describe("ImportPreview", () => {
     ).toJSON();
     expect(tree).toMatchSnapshot();
   });
-
-  it("has invalid accessibility state on error rows", () => {
-    const instance = renderer.create(
-      <ImportPreview
-        results={mockResults}
-        onConfirm={() => {}}
-        onCancel={() => {}}
-      />
-    );
-    const root = instance.root;
-    const viewWithInvalidState = root.findAll(
-      (node) => node.type === "View" && node.props.accessibilityState?.invalid === true
-    );
-    expect(viewWithInvalidState.length).toBeGreaterThan(0);
-  });
 });

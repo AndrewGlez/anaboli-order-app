@@ -35,11 +35,6 @@ exports[`ImportPreview renders correctly with all errors 1`] = `
     <View>
       <View
         accessibilityRole="text"
-        accessibilityState={
-          {
-            "invalid": true,
-          }
-        }
         style={
           [
             {
@@ -268,11 +263,6 @@ exports[`ImportPreview renders correctly with mixed results 1`] = `
       </View>
       <View
         accessibilityRole="text"
-        accessibilityState={
-          {
-            "invalid": true,
-          }
-        }
         style={
           [
             {

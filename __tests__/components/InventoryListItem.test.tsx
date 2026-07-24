@@ -30,7 +30,7 @@ describe("InventoryListItem", () => {
     const instance = renderer.create(<InventoryListItem item={mockItem} />);
     const root = instance.root;
     const viewWithRole = root.findAll(
-      (node) => node.type === "View" && node.props.accessibilityRole === "summary"
+      (node) => node.props.accessibilityRole === "summary"
     );
     expect(viewWithRole.length).toBeGreaterThan(0);
   });

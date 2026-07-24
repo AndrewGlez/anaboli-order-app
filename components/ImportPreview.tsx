@@ -32,9 +32,6 @@ export function ImportPreview({
               result.status === "error" ? styles.rowError : styles.rowOk,
             ]}
             accessibilityRole="text"
-            accessibilityState={
-              result.status === "error" ? { invalid: true } : undefined
-            }
           >
             <Text style={styles.rowNumber}>Row {result.row}</Text>
             {result.status === "ok" ? (

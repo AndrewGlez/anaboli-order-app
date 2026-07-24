@@ -24,7 +24,6 @@ export default function InventoryScreen() {
   const items = useInventoryStore((state) => state.items);
   const addItem = useInventoryStore((state) => state.addItem);
   const updateItem = useInventoryStore((state) => state.updateItem);
-  const deleteItem = useInventoryStore((state) => state.deleteItem);
   const importItems = useInventoryStore((state) => state.importItems);
   const exportItems = useInventoryStore((state) => state.exportItems);
 
@@ -70,7 +69,7 @@ export default function InventoryScreen() {
         setPendingRows(results);
       };
       input.click();
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Failed to import file");
     }
   };
@@ -86,7 +85,7 @@ export default function InventoryScreen() {
   const handleExport = async () => {
     try {
       await exportItems();
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Failed to export inventory");
     }
   };

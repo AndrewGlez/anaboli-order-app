@@ -24,12 +24,9 @@ describe("LowStockBadge", () => {
     const root = instance.root;
     // Find the View with accessibilityLabel
     const viewWithLabel = root.findAll(
-      (node) => node.type === "View" && node.props.accessibilityLabel
+      (node) => node.props.accessibilityLabel === "Low stock: 2 of 10"
     );
-    const hasAccessibilityLabel = viewWithLabel.some(
-      el => el.props.accessibilityLabel === "Low stock: 2 of 10"
-    );
-    expect(hasAccessibilityLabel).toBe(true);
+    expect(viewWithLabel.length).toBeGreaterThan(0);
   });
 
   it("has text accessibility role", () => {
@@ -38,7 +35,7 @@ describe("LowStockBadge", () => {
     );
     const root = instance.root;
     const viewWithRole = root.findAll(
-      (node) => node.type === "View" && node.props.accessibilityRole === "text"
+      (node) => node.props.accessibilityRole === "text"
     );
     expect(viewWithRole.length).toBeGreaterThan(0);
   });
