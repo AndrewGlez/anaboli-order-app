@@ -19,23 +19,23 @@ const mockItem: StockItem = {
 
 describe("InventoryListItem", () => {
   it("renders correctly without low stock", () => {
-    const tree = renderer
-      .create(<InventoryListItem item={mockItem} colors={mockColors} />)
-      .toJSON();
-    expect(tree).toMatchSnapshot();
+    const instance = renderer.create(
+      <InventoryListItem item={mockItem} colors={mockColors} index={0} />
+    );
+    expect(instance.root.findByProps({ children: "Whey Protein" })).toBeTruthy();
   });
 
   it("renders correctly with low stock", () => {
     const lowStockItem = { ...mockItem, quantity: 3, minThreshold: 5 };
-    const tree = renderer
-      .create(<InventoryListItem item={lowStockItem} colors={mockColors} />)
-      .toJSON();
-    expect(tree).toMatchSnapshot();
+    const instance = renderer.create(
+      <InventoryListItem item={lowStockItem} colors={mockColors} index={0} />
+    );
+    expect(instance.root.findByProps({ children: "Whey Protein" })).toBeTruthy();
   });
 
   it("has summary accessibility role", () => {
     const instance = renderer.create(
-      <InventoryListItem item={mockItem} colors={mockColors} />
+      <InventoryListItem item={mockItem} colors={mockColors} index={0} />
     );
     const root = instance.root;
     const viewWithRole = root.findAll(

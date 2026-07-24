@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Search, Download, Upload, PlusCircle, Package } from "lucide-react-native";
+import Animated, { FadeInDown, Layout } from "react-native-reanimated";
 import { useInventoryStore } from "@/store/inventoryStore";
 import { useHydrated } from "@/hooks/useHydrated";
 import { InventoryListItem } from "@/components/InventoryListItem";
@@ -138,7 +139,10 @@ export default function InventoryScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <Animated.View
+        style={[styles.header, { borderBottomColor: colors.border }]}
+        entering={FadeInDown.duration(300)}
+      >
         <View style={styles.titleContainer}>
           <Text style={[styles.title, { color: colors.text }]}>
             📦 Inventario
@@ -176,13 +180,14 @@ export default function InventoryScreen() {
             <Text style={styles.actionButtonText}>Export</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </Animated.View>
 
-      <View
+      <Animated.View
         style={[
           styles.searchContainer,
           { borderColor: colors.border, padding: SIZES.padding },
         ]}
+        entering={FadeInDown.delay(50).springify()}
       >
         <View
           style={[
@@ -206,7 +211,7 @@ export default function InventoryScreen() {
         >
           <PlusCircle size={20} color={COLORS.white} />
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
       {importResults ? (
         <ImportPreview
@@ -220,12 +225,12 @@ export default function InventoryScreen() {
       ) : filteredItems.length > 0 ? (
         <FlatList
           data={filteredItems}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <TouchableOpacity
               onPress={() => setEditingItem(item)}
               activeOpacity={0.8}
             >
-              <InventoryListItem item={item} colors={colors} />
+              <InventoryListItem item={item} colors={colors} index={index} />
             </TouchableOpacity>
           )}
           keyExtractor={(item) => item.id}

@@ -1,12 +1,21 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
+import Animated, {
+  FadeInDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
 import { StockItem, ProductType } from "@/types";
 import { COLORS, FONTS, SIZES } from "@/constants/theme";
 import { LowStockBadge } from "./InventoryLowStockBadge";
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 interface InventoryListItemProps {
   item: StockItem;
   colors: ReturnType<typeof COLORS.themed>;
+  index?: number;
 }
 
 const PRODUCT_COLORS: Record<ProductType, string> = {
@@ -23,14 +32,33 @@ const PRODUCT_LABELS: Record<ProductType, string> = {
   K: "Ketos",
 };
 
-export function InventoryListItem({ item, colors }: InventoryListItemProps) {
+export function InventoryListItem({ item, colors, index = 0 }: InventoryListItemProps) {
   const isLowStock = item.quantity <= item.minThreshold;
   const productColor = PRODUCT_COLORS[item.type];
   const productLabel = PRODUCT_LABELS[item.type];
 
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.98, { damping: 15, stiffness: 300 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 200 });
+  };
+
   return (
-    <View
-      style={[styles.container, { backgroundColor: colors.white, borderColor: colors.border }]}
+    <Animated.View
+      entering={FadeInDown.delay(index * 50).springify().damping(15)}
+      style={[
+        styles.container,
+        { backgroundColor: colors.white, borderColor: colors.border },
+        animatedStyle,
+      ]}
       accessibilityRole="summary"
     >
       <View
@@ -62,7 +90,7 @@ export function InventoryListItem({ item, colors }: InventoryListItemProps) {
           )}
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

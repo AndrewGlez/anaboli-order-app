@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,14 @@ import {
   StyleSheet,
   Modal,
 } from "react-native";
+import Animated, {
+  FadeInDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  runOnJS,
+} from "react-native-reanimated";
 import { ProductType } from "@/types";
 import { COLORS, FONTS, SIZES } from "@/constants/theme";
 import { useThemeStore } from "@/store/themeStore";
@@ -57,6 +65,23 @@ export function InventoryForm({
   );
   const [price, setPrice] = useState(initialData?.price?.toString() || "0");
   const [reason, setReason] = useState("");
+  const modalScale = useSharedValue(0.82);
+  const overlayOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (!visible) return;
+
+    modalScale.value = withSpring(1, { damping: 18, stiffness: 220 });
+    overlayOpacity.value = withTiming(1, { duration: 180 });
+  }, [visible, modalScale, overlayOpacity]);
+
+  const modalAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: modalScale.value }],
+  }));
+
+  const overlayAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: overlayOpacity.value,
+  }));
 
   const handleSave = () => {
     const qty = parseInt(quantity, 10);
@@ -87,120 +112,149 @@ export function InventoryForm({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <View
+    <Modal visible={visible} animationType="none" transparent>
+      <Animated.View style={[styles.overlay, overlayAnimatedStyle]}>
+        <Animated.View
           style={[
             styles.container,
             { backgroundColor: colors.white, borderColor: colors.border },
+            modalAnimatedStyle,
           ]}
         >
           <Text style={[styles.title, { color: colors.text }]}>
             {initialData ? "Editar Item" : "Agregar Item"}
           </Text>
 
-          <Text style={[styles.label, { color: colors.text }]}>Nombre</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.white,
-                borderColor: colors.border,
-                color: colors.text,
-              },
-            ]}
-            value={name}
-            onChangeText={setName}
-            placeholder="Nombre del item"
-            placeholderTextColor={colors.textLight}
-          />
+          <Animated.View
+            style={styles.formGroup}
+            entering={FadeInDown.delay(0).springify()}
+          >
+            <Text style={[styles.label, { color: colors.text }]}>Nombre</Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.white,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+              ]}
+              value={name}
+              onChangeText={setName}
+              placeholder="Nombre del item"
+              placeholderTextColor={colors.textLight}
+            />
+          </Animated.View>
 
-          <Text style={[styles.label, { color: colors.text }]}>Tipo</Text>
-          <View style={styles.typeContainer}>
-            {PRODUCT_TYPES.map((p) => (
-              <TouchableOpacity
-                key={p.type}
-                style={[
-                  styles.typeButton,
-                  {
-                    borderColor:
-                      type === p.type ? p.color : colors.border,
-                    backgroundColor:
-                      type === p.type ? p.color + "15" : "transparent",
-                  },
-                ]}
-                onPress={() => setType(p.type)}
-              >
-                <Text
+          <Animated.View
+            style={styles.formGroup}
+            entering={FadeInDown.delay(50).springify()}
+          >
+            <Text style={[styles.label, { color: colors.text }]}>Tipo</Text>
+            <View style={styles.typeContainer}>
+              {PRODUCT_TYPES.map((p) => (
+                <TouchableOpacity
+                  key={p.type}
                   style={[
-                    styles.typeButtonText,
+                    styles.typeButton,
                     {
-                      color:
-                        type === p.type ? p.color : colors.textLight,
+                      borderColor:
+                        type === p.type ? p.color : colors.border,
+                      backgroundColor:
+                        type === p.type ? p.color + "15" : "transparent",
                     },
                   ]}
+                  onPress={() => setType(p.type)}
                 >
-                  {p.type}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+                  <Text
+                    style={[
+                      styles.typeButtonText,
+                      {
+                        color:
+                          type === p.type ? p.color : colors.textLight,
+                      },
+                    ]}
+                  >
+                    {p.type}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </Animated.View>
 
-          <Text style={[styles.label, { color: colors.text }]}>Cantidad</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.white,
-                borderColor: colors.border,
-                color: colors.text,
-              },
-            ]}
-            value={quantity}
-            onChangeText={setQuantity}
-            keyboardType="numeric"
-            placeholder="0"
-            placeholderTextColor={colors.textLight}
-          />
+          <Animated.View
+            style={styles.formGroup}
+            entering={FadeInDown.delay(100).springify()}
+          >
+            <Text style={[styles.label, { color: colors.text }]}>Cantidad</Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.white,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+              ]}
+              value={quantity}
+              onChangeText={setQuantity}
+              keyboardType="numeric"
+              placeholder="0"
+              placeholderTextColor={colors.textLight}
+            />
+          </Animated.View>
 
-          <Text style={[styles.label, { color: colors.text }]}>
-            Stock mínimo
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.white,
-                borderColor: colors.border,
-                color: colors.text,
-              },
-            ]}
-            value={minThreshold}
-            onChangeText={setMinThreshold}
-            keyboardType="numeric"
-            placeholder="0"
-            placeholderTextColor={colors.textLight}
-          />
+          <Animated.View
+            style={styles.formGroup}
+            entering={FadeInDown.delay(150).springify()}
+          >
+            <Text style={[styles.label, { color: colors.text }]}>
+              Stock mínimo
+            </Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.white,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+              ]}
+              value={minThreshold}
+              onChangeText={setMinThreshold}
+              keyboardType="numeric"
+              placeholder="0"
+              placeholderTextColor={colors.textLight}
+            />
+          </Animated.View>
 
-          <Text style={[styles.label, { color: colors.text }]}>Precio</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.white,
-                borderColor: colors.border,
-                color: colors.text,
-              },
-            ]}
-            value={price}
-            onChangeText={setPrice}
-            keyboardType="numeric"
-            placeholder="0"
-            placeholderTextColor={colors.textLight}
-          />
+          <Animated.View
+            style={styles.formGroup}
+            entering={FadeInDown.delay(200).springify()}
+          >
+            <Text style={[styles.label, { color: colors.text }]}>Precio</Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.white,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+              ]}
+              value={price}
+              onChangeText={setPrice}
+              keyboardType="numeric"
+              placeholder="0"
+              placeholderTextColor={colors.textLight}
+            />
+          </Animated.View>
 
           {initialData && (
-            <>
+            <Animated.View
+              style={styles.formGroup}
+              entering={FadeInDown.delay(250).springify()}
+            >
               <Text style={[styles.label, { color: colors.text }]}>
                 Razón (requerido para ediciones)
               </Text>
@@ -218,10 +272,13 @@ export function InventoryForm({
                 placeholder="Razón del cambio"
                 placeholderTextColor={colors.textLight}
               />
-            </>
+            </Animated.View>
           )}
 
-          <View style={styles.buttons}>
+          <Animated.View
+            style={styles.buttons}
+            entering={FadeInDown.delay(300).springify()}
+          >
             <TouchableOpacity
               style={[styles.cancelButton, { borderColor: colors.border }]}
               onPress={onClose}
@@ -241,9 +298,9 @@ export function InventoryForm({
             >
               <Text style={styles.saveButtonText}>Guardar</Text>
             </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+          </Animated.View>
+        </Animated.View>
+      </Animated.View>
     </Modal>
   );
 }
@@ -265,6 +322,9 @@ const styles = StyleSheet.create({
   title: {
     ...FONTS.h2,
     marginBottom: 16,
+  },
+  formGroup: {
+    marginBottom: 4,
   },
   label: {
     ...FONTS.body2,
