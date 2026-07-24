@@ -72,13 +72,15 @@ export interface ImportResult {
   error?: string;
 }
 
+export type OrderResult = { ok: true } | { ok: false; reason: string; shortfall?: Partial<Record<ProductType, number>> };
+
 export interface OrderStore {
   orders: Order[];
   gastos: Gasto[];
   lastUpdated: number;
-  addOrder: (order: Order) => void;
-  updateOrder: (id: string, updatedOrder: Partial<Order>) => void;
-  deleteOrder: (id: string) => void;
+  addOrder: (order: Order) => OrderResult;
+  updateOrder: (id: string, updatedOrder: Partial<Order>) => OrderResult;
+  deleteOrder: (id: string) => OrderResult;
   clearOrders: () => void;
   setOrders: (orders: Order[]) => void;
   getOrdersAsJSON: () => string;

@@ -1,30 +1,66 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { StockItem } from "@/types";
+import { StockItem, ProductType } from "@/types";
+import { COLORS, FONTS, SIZES } from "@/constants/theme";
 import { LowStockBadge } from "./InventoryLowStockBadge";
 
 interface InventoryListItemProps {
   item: StockItem;
+  colors: ReturnType<typeof COLORS.themed>;
 }
 
-export function InventoryListItem({ item }: InventoryListItemProps) {
+const PRODUCT_COLORS: Record<ProductType, string> = {
+  A: COLORS.productA,
+  GNY: COLORS.productGNY,
+  C: COLORS.productC,
+  K: COLORS.productK,
+};
+
+const PRODUCT_LABELS: Record<ProductType, string> = {
+  A: "Avena",
+  GNY: "Galletas",
+  C: "Cookies",
+  K: "Ketos",
+};
+
+export function InventoryListItem({ item, colors }: InventoryListItemProps) {
   const isLowStock = item.quantity <= item.minThreshold;
+  const productColor = PRODUCT_COLORS[item.type];
+  const productLabel = PRODUCT_LABELS[item.type];
 
   return (
-    <View style={styles.container} accessibilityRole="summary">
-      <View style={styles.info}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.type}>{item.type}</Text>
+    <View
+      style={[styles.container, { backgroundColor: colors.white, borderColor: colors.border }]}
+      accessibilityRole="summary"
+    >
+      <View
+        style={[styles.typeBadge, { backgroundColor: productColor }]}
+        accessibilityLabel={`Product type ${productLabel}`}
+      >
+        <Text style={styles.typeBadgeText}>{item.type}</Text>
       </View>
-      <View style={styles.details}>
-        <Text style={styles.quantity}>Qty: {item.quantity}</Text>
-        <Text style={styles.price}>${item.price}</Text>
-        {isLowStock && (
-          <LowStockBadge
-            quantity={item.quantity}
-            minThreshold={item.minThreshold}
-          />
-        )}
+
+      <View style={styles.info}>
+        <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>
+          {item.name}
+        </Text>
+        <View style={styles.metaRow}>
+          <Text style={[styles.productLabel, { color: productColor }]}>
+            {productLabel}
+          </Text>
+          <Text style={[styles.quantity, { color: colors.textLight }]}>
+            Qty: {item.quantity}
+          </Text>
+          <Text style={[styles.price, { color: colors.textLight }]}>
+            ${item.price}
+          </Text>
+          {isLowStock && (
+            <LowStockBadge
+              quantity={item.quantity}
+              minThreshold={item.minThreshold}
+            />
+          )}
+        </View>
       </View>
     </View>
   );
@@ -33,36 +69,47 @@ export function InventoryListItem({ item }: InventoryListItemProps) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: 12,
+    padding: SIZES.padding,
+    borderRadius: SIZES.radius,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    marginBottom: 8,
+  },
+  typeBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: SIZES.radius,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  typeBadgeText: {
+    ...FONTS.h3,
+    color: COLORS.white,
+    fontWeight: "700",
   },
   info: {
     flex: 1,
   },
   name: {
-    fontSize: 16,
+    ...FONTS.body1,
     fontWeight: "600",
-    color: "#111827",
+    marginBottom: 4,
   },
-  type: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginTop: 2,
-  },
-  details: {
+  metaRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
+    flexWrap: "wrap",
+  },
+  productLabel: {
+    ...FONTS.body3,
+    fontWeight: "600",
   },
   quantity: {
-    fontSize: 14,
-    color: "#374151",
+    ...FONTS.body3,
   },
   price: {
-    fontSize: 14,
-    color: "#374151",
+    ...FONTS.body3,
   },
 });

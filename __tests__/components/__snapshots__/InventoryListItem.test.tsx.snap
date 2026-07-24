@@ -4,40 +4,48 @@ exports[`InventoryListItem renders correctly with low stock 1`] = `
 <View
   accessibilityRole="summary"
   style={
-    {
-      "alignItems": "center",
-      "borderBottomColor": "#E5E7EB",
-      "borderBottomWidth": 1,
-      "flexDirection": "row",
-      "justifyContent": "space-between",
-      "padding": 12,
-    }
+    [
+      {
+        "alignItems": "center",
+        "borderBottomWidth": 1,
+        "borderRadius": 8,
+        "flexDirection": "row",
+        "marginBottom": 8,
+        "padding": 16,
+      },
+      {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#e2e8f0",
+      },
+    ]
   }
 >
   <View
+    accessibilityLabel="Product type Galletas"
     style={
-      {
-        "flex": 1,
-      }
+      [
+        {
+          "alignItems": "center",
+          "borderRadius": 8,
+          "height": 44,
+          "justifyContent": "center",
+          "marginRight": 12,
+          "width": 44,
+        },
+        {
+          "backgroundColor": "#fb7185",
+        },
+      ]
     }
   >
     <Text
       style={
         {
-          "color": "#111827",
-          "fontSize": 16,
-          "fontWeight": "600",
-        }
-      }
-    >
-      Whey Protein
-    </Text>
-    <Text
-      style={
-        {
-          "color": "#6B7280",
-          "fontSize": 12,
-          "marginTop": 2,
+          "color": "#ffffff",
+          "fontFamily": "Montserrat_600SemiBold",
+          "fontSize": 18,
+          "fontWeight": "700",
+          "lineHeight": 28,
         }
       }
     >
@@ -47,59 +55,116 @@ exports[`InventoryListItem renders correctly with low stock 1`] = `
   <View
     style={
       {
-        "alignItems": "center",
-        "flexDirection": "row",
-        "gap": 12,
+        "flex": 1,
       }
     }
   >
     <Text
+      numberOfLines={1}
       style={
-        {
-          "color": "#374151",
-          "fontSize": 14,
-        }
+        [
+          {
+            "fontFamily": "Montserrat_400Regular",
+            "fontSize": 16,
+            "fontWeight": "600",
+            "lineHeight": 26,
+            "marginBottom": 4,
+          },
+          {
+            "color": "#1e293b",
+          },
+        ]
       }
     >
-      Qty: 
-      3
-    </Text>
-    <Text
-      style={
-        {
-          "color": "#374151",
-          "fontSize": 14,
-        }
-      }
-    >
-      $
-      50
+      Whey Protein
     </Text>
     <View
-      accessibilityLabel="Low stock: 3 of 5"
-      accessibilityRole="text"
       style={
         {
-          "backgroundColor": "#FEE2E2",
-          "borderRadius": 4,
-          "paddingHorizontal": 8,
-          "paddingVertical": 2,
+          "alignItems": "center",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "gap": 10,
         }
       }
     >
       <Text
         style={
+          [
+            {
+              "fontFamily": "Montserrat_400Regular",
+              "fontSize": 12,
+              "fontWeight": "600",
+              "lineHeight": 20,
+            },
+            {
+              "color": "#fb7185",
+            },
+          ]
+        }
+      >
+        Galletas
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontFamily": "Montserrat_400Regular",
+              "fontSize": 12,
+              "lineHeight": 20,
+            },
+            {
+              "color": "#64748b",
+            },
+          ]
+        }
+      >
+        Qty: 
+        3
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontFamily": "Montserrat_400Regular",
+              "fontSize": 12,
+              "lineHeight": 20,
+            },
+            {
+              "color": "#64748b",
+            },
+          ]
+        }
+      >
+        $
+        50
+      </Text>
+      <View
+        accessibilityLabel="Low stock: 3 of 5"
+        accessibilityRole="text"
+        style={
           {
-            "color": "#DC2626",
-            "fontSize": 12,
-            "fontWeight": "600",
+            "backgroundColor": "#FEE2E2",
+            "borderRadius": 4,
+            "paddingHorizontal": 8,
+            "paddingVertical": 2,
           }
         }
       >
-        3
-         / 
-        5
-      </Text>
+        <Text
+          style={
+            {
+              "color": "#DC2626",
+              "fontSize": 12,
+              "fontWeight": "600",
+            }
+          }
+        >
+          3
+           / 
+          5
+        </Text>
+      </View>
     </View>
   </View>
 </View>
@@ -109,40 +174,48 @@ exports[`InventoryListItem renders correctly without low stock 1`] = `
 <View
   accessibilityRole="summary"
   style={
-    {
-      "alignItems": "center",
-      "borderBottomColor": "#E5E7EB",
-      "borderBottomWidth": 1,
-      "flexDirection": "row",
-      "justifyContent": "space-between",
-      "padding": 12,
-    }
+    [
+      {
+        "alignItems": "center",
+        "borderBottomWidth": 1,
+        "borderRadius": 8,
+        "flexDirection": "row",
+        "marginBottom": 8,
+        "padding": 16,
+      },
+      {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#e2e8f0",
+      },
+    ]
   }
 >
   <View
+    accessibilityLabel="Product type Galletas"
     style={
-      {
-        "flex": 1,
-      }
+      [
+        {
+          "alignItems": "center",
+          "borderRadius": 8,
+          "height": 44,
+          "justifyContent": "center",
+          "marginRight": 12,
+          "width": 44,
+        },
+        {
+          "backgroundColor": "#fb7185",
+        },
+      ]
     }
   >
     <Text
       style={
         {
-          "color": "#111827",
-          "fontSize": 16,
-          "fontWeight": "600",
-        }
-      }
-    >
-      Whey Protein
-    </Text>
-    <Text
-      style={
-        {
-          "color": "#6B7280",
-          "fontSize": 12,
-          "marginTop": 2,
+          "color": "#ffffff",
+          "fontFamily": "Montserrat_600SemiBold",
+          "fontSize": 18,
+          "fontWeight": "700",
+          "lineHeight": 28,
         }
       }
     >
@@ -152,34 +225,91 @@ exports[`InventoryListItem renders correctly without low stock 1`] = `
   <View
     style={
       {
-        "alignItems": "center",
-        "flexDirection": "row",
-        "gap": 12,
+        "flex": 1,
       }
     }
   >
     <Text
+      numberOfLines={1}
+      style={
+        [
+          {
+            "fontFamily": "Montserrat_400Regular",
+            "fontSize": 16,
+            "fontWeight": "600",
+            "lineHeight": 26,
+            "marginBottom": 4,
+          },
+          {
+            "color": "#1e293b",
+          },
+        ]
+      }
+    >
+      Whey Protein
+    </Text>
+    <View
       style={
         {
-          "color": "#374151",
-          "fontSize": 14,
+          "alignItems": "center",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "gap": 10,
         }
       }
     >
-      Qty: 
-      10
-    </Text>
-    <Text
-      style={
-        {
-          "color": "#374151",
-          "fontSize": 14,
+      <Text
+        style={
+          [
+            {
+              "fontFamily": "Montserrat_400Regular",
+              "fontSize": 12,
+              "fontWeight": "600",
+              "lineHeight": 20,
+            },
+            {
+              "color": "#fb7185",
+            },
+          ]
         }
-      }
-    >
-      $
-      50
-    </Text>
+      >
+        Galletas
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontFamily": "Montserrat_400Regular",
+              "fontSize": 12,
+              "lineHeight": 20,
+            },
+            {
+              "color": "#64748b",
+            },
+          ]
+        }
+      >
+        Qty: 
+        10
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontFamily": "Montserrat_400Regular",
+              "fontSize": 12,
+              "lineHeight": 20,
+            },
+            {
+              "color": "#64748b",
+            },
+          ]
+        }
+      >
+        $
+        50
+      </Text>
+    </View>
   </View>
 </View>
 `;
