@@ -3,6 +3,7 @@ import {
   BarChart4,
   Settings,
   PlusCircle,
+  Package,
 } from 'lucide-react-native';
 
 export interface TabItem {
@@ -30,6 +31,12 @@ export const TAB_ITEMS: TabItem[] = [
     href: '/analytics',
     title: 'Análisis',
     icon: BarChart4,
+  },
+  {
+    name: 'inventory',
+    href: '/inventory',
+    title: 'Inventario',
+    icon: Package,
   },
   {
     name: 'settings',

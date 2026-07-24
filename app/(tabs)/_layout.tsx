@@ -18,6 +18,7 @@ export default function TabLayout() {
   const getActiveHref = () => {
     if (pathname.includes("/new-order")) return "/new-order";
     if (pathname.includes("/analytics")) return "/analytics";
+    if (pathname.includes("/inventory")) return "/inventory";
     if (pathname.includes("/settings")) return "/settings";
     return "/";
   };
@@ -37,6 +38,7 @@ export default function TabLayout() {
           <TabTrigger name="index" href="/" />
           <TabTrigger name="new-order" href="/new-order" />
           <TabTrigger name="analytics" href="/analytics" />
+          <TabTrigger name="inventory" href="/inventory" />
           <TabTrigger name="settings" href="/settings" />
         </TabList>
       </Tabs>
@@ -57,6 +59,7 @@ export default function TabLayout() {
           <TabTrigger name="index" href="/" />
           <TabTrigger name="new-order" href="/new-order" />
           <TabTrigger name="analytics" href="/analytics" />
+          <TabTrigger name="inventory" href="/inventory" />
           <TabTrigger name="settings" href="/settings" />
         </TabList>
       </Tabs>

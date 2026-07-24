@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { InventoryStore, ProductType, ImportRow, ImportResult } from "@/types";
+import { InventoryStore, ProductType, ImportResult } from "@/types";
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
