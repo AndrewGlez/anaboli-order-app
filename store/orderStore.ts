@@ -16,12 +16,12 @@ export const useOrderStore = create<OrderStore>()(
       addOrder: (order) => {
         const inventoryStore = useInventoryStore.getState();
         if (!inventoryStore.hydrated) {
-          return;
+          return { ok: false, reason: "Inventory not hydrated" };
         }
 
         const availability = inventoryStore.checkAvailability(order.products);
         if (!availability.available) {
-          return;
+          return { ok: false, reason: "insufficient_stock", shortfall: availability.shortfall };
         }
 
         inventoryStore.consumeProducts(order.products, `order:${order.id}`);
@@ -30,16 +30,17 @@ export const useOrderStore = create<OrderStore>()(
           orders: [...state.orders, order],
           lastUpdated: Date.now(),
         }));
+        return { ok: true };
       },
 
       updateOrder: (id, updatedOrder) => {
         const state = get();
         const existingOrder = state.orders.find((o) => o.id === id);
-        if (!existingOrder) return;
+        if (!existingOrder) return { ok: false, reason: "Order not found" };
 
         const inventoryStore = useInventoryStore.getState();
         if (!inventoryStore.hydrated) {
-          return;
+          return { ok: false, reason: "Inventory not hydrated" };
         }
 
         // Restore old products
@@ -54,7 +55,7 @@ export const useOrderStore = create<OrderStore>()(
 
         if (!availability.available) {
           // Note: restore is NOT rolled back (documented atomicity gap)
-          return;
+          return { ok: false, reason: "insufficient_stock", shortfall: availability.shortfall };
         }
 
         // Consume new products
@@ -72,16 +73,17 @@ export const useOrderStore = create<OrderStore>()(
           ),
           lastUpdated: Date.now(),
         }));
+        return { ok: true };
       },
 
       deleteOrder: (id) => {
         const state = get();
         const order = state.orders.find((o) => o.id === id);
-        if (!order) return;
+        if (!order) return { ok: false, reason: "Order not found" };
 
         const inventoryStore = useInventoryStore.getState();
         if (!inventoryStore.hydrated) {
-          return;
+          return { ok: false, reason: "Inventory not hydrated" };
         }
 
         // Restore products
@@ -91,6 +93,7 @@ export const useOrderStore = create<OrderStore>()(
           orders: s.orders.filter((o) => o.id !== id),
           lastUpdated: Date.now(),
         }));
+        return { ok: true };
       },
 
       clearOrders: () => set({ orders: [], lastUpdated: Date.now() }),

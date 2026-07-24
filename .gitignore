@@ -50,3 +50,4 @@ bun.lock
 .atl/
 /.pi/gentle-ai
 /openspec
+/.agents/skills/design-taste-frontend

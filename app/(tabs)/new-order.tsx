@@ -115,7 +115,24 @@ export default function NewOrderScreen() {
       updatedAt: new Date().toISOString(),
     };
 
-    addOrder(newOrder);
+    const result = addOrder(newOrder);
+
+    if (!result.ok) {
+      if (result.reason === "insufficient_stock") {
+        const shortfall = result.shortfall
+          ? Object.entries(result.shortfall)
+              .map(([type, qty]) => `${type} (faltan ${qty})`)
+              .join(", ")
+          : "";
+        Alert.alert(
+          "Stock insuficiente",
+          `No hay suficiente stock para esta orden${shortfall ? `: ${shortfall}` : ""}`
+        );
+      } else {
+        Alert.alert("Error", `No se pudo crear la orden: ${result.reason}`);
+      }
+      return;
+    }
 
     // Save gastos
     gastos.forEach((gasto) => {
