@@ -1,83 +1,84 @@
-import { Tabs } from "expo-router";
-import { StyleSheet } from "react-native";
-import {
-  Clipboard,
-  BarChart4,
-  Settings,
-  PlusCircle,
-} from "lucide-react-native";
+import { usePathname } from "expo-router";
+import { Tabs, TabSlot, TabTrigger, TabList } from "expo-router/ui";
+import { StyleSheet, View } from "react-native";
 import { COLORS } from "@/constants/theme";
 import { useThemeStore } from "@/store/themeStore";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
+import { PhoneTabs } from "@/components/navigation/PhoneTabs";
+import { TabletTopNav } from "@/components/navigation/TabletTopNav";
+import { DesktopSidebar } from "@/components/navigation/DesktopSidebar";
 
 export default function TabLayout() {
   const { theme } = useThemeStore();
   const colors = COLORS.themed(theme);
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textLight,
-        tabBarStyle: [
-          styles.tabBar,
-          { backgroundColor: colors.background, borderColor: colors.border },
-        ],
-        tabBarLabelStyle: styles.tabBarLabel,
-        headerShown: false,
-        animation: "fade",
-        sceneStyle: { backgroundColor: colors.background },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Ordenes",
-          tabBarIcon: ({ color, size }) => (
-            <Clipboard size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="new-order"
-        options={{
-          title: "Nuevo",
-          tabBarIcon: ({ color, size }) => (
-            <PlusCircle size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="analytics"
-        options={{
-          title: "Análisis",
-          tabBarIcon: ({ color, size }) => (
-            <BarChart4 size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Ajustes",
-          tabBarIcon: ({ color, size }) => (
-            <Settings size={size} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
-  );
+  const breakpoint = useBreakpoint();
+  const pathname = usePathname();
+
+  // Map pathname to active href
+  const getActiveHref = () => {
+    if (pathname.includes("/new-order")) return "/new-order";
+    if (pathname.includes("/analytics")) return "/analytics";
+    if (pathname.includes("/inventory")) return "/inventory";
+    if (pathname.includes("/settings")) return "/settings";
+    return "/";
+  };
+
+  // Desktop: sidebar layout. Use the headless Tabs from expo-router/ui so no
+  // default bottom tab bar is rendered; DesktopSidebar handles navigation.
+  if (breakpoint === "desktop") {
+    return (
+      <Tabs>
+        <View style={styles.desktopContainer}>
+          <DesktopSidebar activeHref={getActiveHref()} />
+          <View style={styles.content}>
+            <TabSlot />
+          </View>
+        </View>
+        <TabList>
+          <TabTrigger name="index" href="/" />
+          <TabTrigger name="new-order" href="/new-order" />
+          <TabTrigger name="analytics" href="/analytics" />
+          <TabTrigger name="inventory" href="/inventory" />
+          <TabTrigger name="settings" href="/settings" />
+        </TabList>
+      </Tabs>
+    );
+  }
+
+  // Tablet: top navigation. Same headless Tabs as desktop.
+  if (breakpoint === "tablet") {
+    return (
+      <Tabs>
+        <View style={styles.tabletContainer}>
+          <TabletTopNav activeHref={getActiveHref()} />
+          <View style={styles.content}>
+            <TabSlot />
+          </View>
+        </View>
+        <TabList>
+          <TabTrigger name="index" href="/" />
+          <TabTrigger name="new-order" href="/new-order" />
+          <TabTrigger name="analytics" href="/analytics" />
+          <TabTrigger name="inventory" href="/inventory" />
+          <TabTrigger name="settings" href="/settings" />
+        </TabList>
+      </Tabs>
+    );
+  }
+
+  // Phone: bottom tabs. PhoneTabs is the single <Tabs> with the styled bar.
+  return <PhoneTabs />;
 }
 
 const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    height: 60,
-    paddingBottom: 5,
-    paddingTop: 5,
+  desktopContainer: {
+    flex: 1,
+    flexDirection: "row",
   },
-  tabBarLabel: {
-    fontFamily: "Montserrat_500Medium",
-    fontSize: 13,
+  tabletContainer: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
   },
 });

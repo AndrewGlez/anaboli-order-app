@@ -5,12 +5,51 @@ import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useFonts, Montserrat_400Regular, Montserrat_500Medium, Montserrat_600SemiBold, Montserrat_700Bold } from '@expo-google-fonts/montserrat';
 import { SplashScreen } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { Platform } from 'react-native';
+import { InstallPrompt } from '@/components/InstallPrompt';
+import { UpdateToast } from '@/components/UpdateToast';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
+// Register service worker only after first successful online visit
+function useServiceWorkerRegistration() {
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+
+    const registerSW = () => {
+      navigator.serviceWorker.register('/sw.js').catch((err) => {
+        console.log('SW registration failed:', err);
+      });
+    };
+
+    // Only register when online — gate on navigator.onLine
+    if (navigator.onLine) {
+      // Defer until after the page fully loads
+      if (document.readyState === 'complete') {
+        registerSW();
+      } else {
+        window.addEventListener('load', registerSW, { once: true });
+      }
+    }
+
+    // Also register when coming back online (deferred visit pattern)
+    const handleOnline = () => {
+      registerSW();
+      window.removeEventListener('online', handleOnline);
+    };
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
+}
+
 export default function RootLayout() {
   useFrameworkReady();
+  useServiceWorkerRegistration();
   const colorScheme = useColorScheme();
 
   const [fontsLoaded, fontError] = useFonts({
@@ -34,6 +73,8 @@ export default function RootLayout() {
 
   return (
     <>
+      {Platform.OS === 'web' && <UpdateToast />}
+      {Platform.OS === 'web' && <InstallPrompt />}
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />

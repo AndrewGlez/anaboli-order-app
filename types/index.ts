@@ -25,6 +25,53 @@ export interface Order {
   updatedAt: string;
 }
 
+export interface StockItem {
+  id: string;
+  name: string;
+  type: ProductType;
+  quantity: number;
+  minThreshold: number;
+  price: number;
+  updatedAt: string;
+  lastAdjustmentReason: string;
+}
+
+export interface InventoryStore {
+  items: StockItem[];
+  hydrated: boolean;
+  addItem: (input: Omit<StockItem, "id" | "updatedAt" | "lastAdjustmentReason">) => void;
+  updateItem: (id: string, patch: Partial<StockItem>) => void;
+  deleteItem: (id: string) => void;
+  clearInventory: () => void;
+  consumeProducts: (
+    products: Product[],
+    reason?: string
+  ) => { ok: true } | { ok: false; reason: string; shortfall?: Partial<Record<ProductType, number>> };
+  restoreProducts: (
+    products: Product[],
+    reason?: string
+  ) => { ok: true };
+  checkAvailability: (
+    products: Product[]
+  ) => { available: true } | { available: false; shortfall: Partial<Record<ProductType, number>> };
+  importItems: (rows: ImportRow[]) => ImportResult[];
+  exportItems: () => Promise<void>;
+}
+
+export interface ImportRow {
+  name: string;
+  type: ProductType;
+  quantity: number;
+  minThreshold: number;
+  price: number;
+}
+
+export interface ImportResult {
+  row: number;
+  status: "ok" | "error";
+  error?: string;
+}
+
 export interface OrderStore {
   orders: Order[];
   gastos: Gasto[];

@@ -1,0 +1,59 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LowStockBadge renders correctly on boundary 1`] = `
+<View
+  accessibilityLabel="Low stock: 5 of 5"
+  accessibilityRole="text"
+  style={
+    {
+      "backgroundColor": "#FEE2E2",
+      "borderRadius": 4,
+      "paddingHorizontal": 8,
+      "paddingVertical": 2,
+    }
+  }
+>
+  <Text
+    style={
+      {
+        "color": "#DC2626",
+        "fontSize": 12,
+        "fontWeight": "600",
+      }
+    }
+  >
+    5
+     / 
+    5
+  </Text>
+</View>
+`;
+
+exports[`LowStockBadge renders correctly with low stock 1`] = `
+<View
+  accessibilityLabel="Low stock: 1 of 5"
+  accessibilityRole="text"
+  style={
+    {
+      "backgroundColor": "#FEE2E2",
+      "borderRadius": 4,
+      "paddingHorizontal": 8,
+      "paddingVertical": 2,
+    }
+  }
+>
+  <Text
+    style={
+      {
+        "color": "#DC2626",
+        "fontSize": 12,
+        "fontWeight": "600",
+      }
+    }
+  >
+    1
+     / 
+    5
+  </Text>
+</View>
+`;

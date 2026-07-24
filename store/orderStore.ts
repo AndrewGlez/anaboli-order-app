@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Order, OrderStore, Gasto } from "@/types";
+import { OrderStore } from "@/types";
+import { useInventoryStore } from "./inventoryStore";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 
@@ -10,17 +11,57 @@ export const useOrderStore = create<OrderStore>()(
     (set, get) => ({
       orders: [],
       gastos: [],
-      lastUpdated: Date.now(), // Add this to track when data was last updated
+      lastUpdated: Date.now(),
 
-      addOrder: (order) =>
+      addOrder: (order) => {
+        const inventoryStore = useInventoryStore.getState();
+        if (!inventoryStore.hydrated) {
+          return;
+        }
+
+        const availability = inventoryStore.checkAvailability(order.products);
+        if (!availability.available) {
+          return;
+        }
+
+        inventoryStore.consumeProducts(order.products, `order:${order.id}`);
+
         set((state) => ({
           orders: [...state.orders, order],
           lastUpdated: Date.now(),
-        })),
+        }));
+      },
 
-      updateOrder: (id, updatedOrder) =>
-        set((state) => ({
-          orders: state.orders.map((order) =>
+      updateOrder: (id, updatedOrder) => {
+        const state = get();
+        const existingOrder = state.orders.find((o) => o.id === id);
+        if (!existingOrder) return;
+
+        const inventoryStore = useInventoryStore.getState();
+        if (!inventoryStore.hydrated) {
+          return;
+        }
+
+        // Restore old products
+        inventoryStore.restoreProducts(
+          existingOrder.products,
+          `order-update-restore:${id}`
+        );
+
+        // Check availability for new products
+        const newProducts = updatedOrder.products || existingOrder.products;
+        const availability = inventoryStore.checkAvailability(newProducts);
+
+        if (!availability.available) {
+          // Note: restore is NOT rolled back (documented atomicity gap)
+          return;
+        }
+
+        // Consume new products
+        inventoryStore.consumeProducts(newProducts, `order:update:${id}`);
+
+        set((s) => ({
+          orders: s.orders.map((order) =>
             order.id === id
               ? {
                   ...order,
@@ -30,13 +71,27 @@ export const useOrderStore = create<OrderStore>()(
               : order
           ),
           lastUpdated: Date.now(),
-        })),
+        }));
+      },
 
-      deleteOrder: (id) =>
-        set((state) => ({
-          orders: state.orders.filter((order) => order.id !== id),
+      deleteOrder: (id) => {
+        const state = get();
+        const order = state.orders.find((o) => o.id === id);
+        if (!order) return;
+
+        const inventoryStore = useInventoryStore.getState();
+        if (!inventoryStore.hydrated) {
+          return;
+        }
+
+        // Restore products
+        inventoryStore.restoreProducts(order.products, `order:delete:${id}`);
+
+        set((s) => ({
+          orders: s.orders.filter((o) => o.id !== id),
           lastUpdated: Date.now(),
-        })),
+        }));
+      },
 
       clearOrders: () => set({ orders: [], lastUpdated: Date.now() }),
 

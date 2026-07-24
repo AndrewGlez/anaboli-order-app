@@ -5,11 +5,9 @@ import {
   StyleSheet,
   Switch,
   TouchableOpacity,
-  Alert,
   ScrollView,
   TextInput,
   Modal,
-  Clipboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -28,6 +26,8 @@ import { useOrderStore } from "@/store/orderStore";
 import { useThemeStore } from "@/store/themeStore";
 import Constants from "expo-constants";
 import { Linking } from "react-native";
+import { copyToClipboard, readFromClipboard } from "@/services/web/clipboard";
+import { showAlert } from "@/services/web/notifications";
 
 export default function SettingsScreen() {
   const {
@@ -43,36 +43,28 @@ export default function SettingsScreen() {
   const colors = COLORS.themed(theme);
 
   const handleClearData = () => {
-    Alert.alert(
+    showAlert(
       "Borrar todos los datos",
       "Estas seguro de que deseas borrar todos los datos de la aplicación? Esta acción no se puede deshacer.",
-      [
-        {
-          text: "Cancelar",
-          style: "cancel",
+      {
+        onDismiss: () => {
+          clearOrders();
+          showAlert("Éxito", "Todos los datos han sido borrados.");
         },
-        {
-          text: "Borrar",
-          onPress: () => {
-            clearOrders();
-            Alert.alert("Éxito", "Todos los datos han sido borrados.");
-          },
-          style: "destructive",
-        },
-      ]
+      }
     );
   };
 
   const handleExportData = async () => {
     try {
       const jsonData = getOrdersAsJSON();
-      await Clipboard.setString(jsonData);
-      Alert.alert(
+      await copyToClipboard(jsonData);
+      showAlert(
         "Datos Exportados",
         "Los datos han sido copiados al portapapeles como JSON. Puedes pegarlos en un archivo de texto para guardarlos."
       );
     } catch (error) {
-      Alert.alert(
+      showAlert(
         "Error al exportar",
         "No se pudieron exportar los datos. Inténtalo de nuevo."
       );
@@ -83,10 +75,10 @@ export default function SettingsScreen() {
     try {
       const result = await exportOrdersToShare();
       if (!result.success) {
-        Alert.alert("Error", result.message);
+        showAlert("Error", result.message);
       }
     } catch (error) {
-      Alert.alert(
+      showAlert(
         "Error al compartir",
         "No se pudieron compartir los datos. Inténtalo de nuevo."
       );
@@ -99,7 +91,7 @@ export default function SettingsScreen() {
 
   const handleImportSubmit = () => {
     if (!importText.trim()) {
-      Alert.alert("Error", "Por favor, introduce los datos JSON a importar.");
+      showAlert("Error", "Por favor, introduce los datos JSON a importar.");
       return;
     }
 
@@ -107,7 +99,7 @@ export default function SettingsScreen() {
     setImportModalVisible(false);
     setImportText("");
 
-    Alert.alert(
+    showAlert(
       result.success ? "Importación exitosa" : "Error en la importación",
       result.message
     );
@@ -115,10 +107,10 @@ export default function SettingsScreen() {
 
   const handlePasteFromClipboard = async () => {
     try {
-      const clipboardContent = await Clipboard.getString();
+      const clipboardContent = await readFromClipboard();
       setImportText(clipboardContent);
     } catch (error) {
-      Alert.alert(
+      showAlert(
         "Error",
         "No se pudo acceder al portapapeles. Por favor, pega manualmente."
       );
