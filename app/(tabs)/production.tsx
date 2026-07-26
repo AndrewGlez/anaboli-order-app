@@ -329,16 +329,18 @@ export default function ProductionScreen() {
 		});
 	};
 
-  const webHeightStyle = Platform.OS === "web"
-    ? ({ height: "100vh", overflow: "hidden" } as unknown as ViewStyle)
-    : null;
+  // On web we let the document body own scrolling; constraining the
+  // SafeAreaView to 100vh collapsed the inner ScrollView to 0px because RN Web
+  // does not always resolve nested flex: 1 chains. Native keeps the
+  // SafeAreaView as a flex container so ScrollView's flex: 1 keeps working.
+  const webContainerStyle = null;
 
 	return (
 		<SafeAreaView
 			style={[
 				styles.container,
 				{ backgroundColor: colors.background },
-				webHeightStyle,
+				webContainerStyle,
 			]}
 		>
 			{/* Header */}
@@ -393,7 +395,7 @@ export default function ProductionScreen() {
 
       <ScrollView
         ref={scrollViewRef}
-        style={[styles.content, Platform.OS === "web" && styles.webContent]}
+        style={styles.content}
         contentContainerStyle={styles.contentContainer}
         onScroll={handleScroll}
         scrollEventThrottle={16}
