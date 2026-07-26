@@ -32,6 +32,30 @@ import ProductSelector from "@/components/ProductSelector";
 import StatusSelector from "@/components/StatusSelector";
 import { useThemeStore } from "@/store/themeStore";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const orderFormSchema = z.object({
+  gymName: z.string().trim().min(2, "El nombre debe tener al menos 2 caracteres").max(120, "El nombre es demasiado largo"),
+  products: z.array(
+    z.object({
+      type: z.enum(["A", "GNY", "C", "K"]),
+      quantity: z.number().int("La cantidad debe ser un entero").positive("La cantidad debe ser mayor que cero"),
+    })
+  ).min(1, "Agrega al menos un producto").max(50, "No puedes agregar más de 50 productos"),
+  status: z.enum(["Entregado", "Entregado + P", "Entregado + TRF"]),
+  notes: z.string().max(1000, "Las notas son demasiado largas"),
+  flavor: z.enum(FLAVOR_CODES as [FlavorCode, ...FlavorCode[]], "Selecciona un sabor"),
+  price: z.string().trim().refine(
+    (value) => value === "" || /^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(value),
+    "El precio debe ser un número válido con hasta 2 decimales"
+  ),
+  gastos: z.array(
+    z.object({
+      name: z.string().trim().min(2, "El gasto necesita un nombre").max(120),
+      price: z.string().trim().regex(/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/, "El gasto debe tener un precio válido"),
+    })
+  ).max(50, "No puedes agregar más de 50 gastos"),
+});
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -108,22 +132,27 @@ export default function NewOrderScreen() {
       hasFlavor: Boolean(flavor),
     });
 
-    if (!gymName.trim()) {
-      console.debug("[order:create] validation failed: missing gym name");
-      Alert.alert("Error", "Por favor ingresa el nombre del gimnasio");
-      return;
-    }
+    const validation = orderFormSchema.safeParse({
+      gymName,
+      products,
+      status,
+      notes,
+      flavor,
+      price,
+      gastos,
+    });
 
-    if (products.length === 0) {
-      console.debug("[order:create] validation failed: no products");
-      Alert.alert("Error", "Por favor agrega al menos un producto");
-      return;
-    }
-
-    if (!flavor) {
-      console.debug("[order:create] validation failed: missing flavor");
-      Alert.alert("Error", "Por favor selecciona un sabor");
-      setFlavorError("El sabor es obligatorio");
+    if (!validation.success) {
+      const message = validation.error.issues[0]?.message ?? "Revisa los datos del formulario";
+      console.debug("[order:create] validation failed", {
+        fields: validation.error.issues.map((issue) => issue.path.join(".")),
+      });
+      setFlavorError(validation.error.issues.some((issue) => issue.path[0] === "flavor") ? message : null);
+      if (Platform.OS === "web") {
+        toast.error("Revisa la orden", { description: message });
+      } else {
+        Alert.alert("Datos inválidos", message);
+      }
       return;
     }
 
