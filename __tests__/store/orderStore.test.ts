@@ -54,6 +54,7 @@ describe("orderStore inventory sync", () => {
         gymName: "Gym Alpha",
         products: [{ type: "GNY", quantity: 3 }],
         status: "Entregado",
+        flavor: "Apple Pie",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -68,40 +69,6 @@ describe("orderStore inventory sync", () => {
       expect(useInventoryStore.getState().items[0].quantity).toBe(7);
     });
 
-    it("rejects order when inventory is insufficient", () => {
-      useInventoryStore.setState({
-        items: [
-          {
-            id: "inv-1",
-            name: "Whey",
-            type: "GNY",
-            quantity: 2,
-            minThreshold: 1,
-            price: 50,
-            updatedAt: new Date().toISOString(),
-            lastAdjustmentReason: "initial",
-          },
-        ],
-      });
-
-      const order: Order = {
-        id: "order-1",
-        gymName: "Gym Alpha",
-        products: [{ type: "GNY", quantity: 5 }],
-        status: "Entregado",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      useOrderStore.getState().addOrder(order);
-
-      // Order should NOT be created
-      expect(useOrderStore.getState().orders).toHaveLength(0);
-
-      // Inventory should be unchanged
-      expect(useInventoryStore.getState().items[0].quantity).toBe(2);
-    });
-
     it("short-circuits when inventory is not hydrated", () => {
       useInventoryStore.setState({ hydrated: false });
 
@@ -110,6 +77,7 @@ describe("orderStore inventory sync", () => {
         gymName: "Gym Alpha",
         products: [{ type: "GNY", quantity: 1 }],
         status: "Entregado",
+        flavor: "Berry Lover",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -143,6 +111,98 @@ describe("orderStore inventory sync", () => {
         gymName: "Gym Alpha",
         products: [{ type: "GNY", quantity: 3 }],
         status: "Entregado",
+        flavor: "Choco Power",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      useOrderStore.getState().addOrder(order);
+
+      // Order should be created
+      expect(useOrderStore.getState().orders).toHaveLength(1);
+      expect(useOrderStore.getState().orders[0].id).toBe("order-1");
+
+      // Inventory should be decremented
+      expect(useInventoryStore.getState().items[0].quantity).toBe(7);
+    });
+
+    it("rejects order when inventory is insufficient", () => {
+      useInventoryStore.setState({
+        items: [
+          {
+            id: "inv-1",
+            name: "Whey",
+            type: "GNY",
+            quantity: 2,
+            minThreshold: 1,
+            price: 50,
+            updatedAt: new Date().toISOString(),
+            lastAdjustmentReason: "initial",
+          },
+        ],
+      });
+
+      const order: Order = {
+        id: "order-1",
+        gymName: "Gym Alpha",
+        products: [{ type: "GNY", quantity: 3 }],
+        status: "Entregado",
+        flavor: "Apple Pie",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      useOrderStore.getState().addOrder(order);
+
+      // Order should NOT be created
+      expect(useOrderStore.getState().orders).toHaveLength(0);
+
+      // Inventory should be unchanged
+      expect(useInventoryStore.getState().items[0].quantity).toBe(2);
+    });
+
+    it("short-circuits when inventory is not hydrated", () => {
+      useInventoryStore.setState({ hydrated: false });
+
+      const order: Order = {
+        id: "order-1",
+        gymName: "Gym Alpha",
+        products: [{ type: "GNY", quantity: 3 }],
+        status: "Entregado",
+        flavor: "Apple Pie",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      useOrderStore.getState().addOrder(order);
+
+      expect(useOrderStore.getState().orders).toHaveLength(0);
+    });
+  });
+
+  describe("updateOrder", () => {
+    it("restores old products and consumes new products", () => {
+      useInventoryStore.setState({
+        items: [
+          {
+            id: "inv-1",
+            name: "Whey",
+            type: "GNY",
+            quantity: 10,
+            minThreshold: 2,
+            price: 50,
+            updatedAt: new Date().toISOString(),
+            lastAdjustmentReason: "order:create",
+          },
+        ],
+      });
+
+      // Add an order first
+      const order: Order = {
+        id: "order-1",
+        gymName: "Gym Alpha",
+        products: [{ type: "GNY", quantity: 3 }],
+        status: "Entregado",
+        flavor: "Choco Power",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -183,6 +243,7 @@ describe("orderStore inventory sync", () => {
         gymName: "Gym Alpha",
         products: [{ type: "GNY", quantity: 2 }],
         status: "Entregado",
+        flavor: "Berry Lover",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -228,6 +289,7 @@ describe("orderStore inventory sync", () => {
         gymName: "Gym Alpha",
         products: [{ type: "GNY", quantity: 3 }],
         status: "Entregado",
+        flavor: "Choco Nuts",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };

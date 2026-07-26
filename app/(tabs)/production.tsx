@@ -1,12 +1,12 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   Alert,
-  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, Printer, Share2, Save, ChevronLeft, ChevronRight } from "lucide-react-native";
@@ -20,6 +20,11 @@ import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { canPrint, printReport } from "@/services/web/productionPrint";
 import { canExport, exportReport } from "@/services/productionExport";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { SectionNavigation } from "@/components/production/SectionNavigation";
+import { VersionHistory } from "@/components/production/VersionHistory";
+import { LegacyFixList } from "@/components/production/LegacyFixList";
+import { isLegacyOrder, makeEligibleForReconciliation } from "@/components/production/legacyFixes";
+import { VersionInfo } from "@/components/production/versionHistory";
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -29,9 +34,10 @@ export default function ProductionScreen() {
   const colors = COLORS.themed(theme);
   const breakpoint = useBreakpoint();
   const isMobile = breakpoint === "phone";
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Store hooks
-  const { orders } = useOrderStore();
+  const { orders, updateOrder } = useOrderStore();
   const productionStore = useProductionStore();
 
   // Local state
@@ -48,6 +54,29 @@ export default function ProductionScreen() {
     });
     return map;
   });
+  const [activeSectionId, setActiveSectionId] = useState("date-selector");
+  const [scrollY, setScrollY] = useState(0);
+
+  // Rehydrate quantities when loading persisted reports or switching dates
+  React.useEffect(() => {
+    const entries = productionStore.selectEntriesForDate(selectedDate);
+    const newQuantities = new Map<string, number>();
+
+    // Initialize all entries to 0 first
+    FLAVOR_CODES.forEach((flavor) => {
+      PRODUCTION_PRODUCT_TYPES.forEach((product) => {
+        newQuantities.set(`${flavor}:${product}`, 0);
+      });
+    });
+
+    // Override with persisted values
+    entries.forEach((entry) => {
+      newQuantities.set(`${entry.flavor}:${entry.product}`, entry.quantity);
+    });
+
+    setQuantities(newQuantities);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
 
   // Get orders for selected date
   const ordersForDate = useMemo(() => {
@@ -56,6 +85,21 @@ export default function ProductionScreen() {
       return orderDate === selectedDate;
     });
   }, [orders, selectedDate]);
+
+  // Get legacy orders for the current date
+  const legacyOrdersForDate = useMemo(() => {
+    return ordersForDate.filter((order) => isLegacyOrder(order));
+  }, [ordersForDate]);
+
+  // Get versions for the selected date
+  const versionsForDate = useMemo(() => {
+    const reports = productionStore.getVersionsForDate(selectedDate);
+    return reports.map((r): VersionInfo => ({
+      version: r.version,
+      createdAt: r.createdAt,
+      date: r.date,
+    }));
+  }, [productionStore, selectedDate]);
 
   // Calculate totals
   const { totalProduced, totalAssigned, isBalanced } = useMemo(() => {
@@ -80,8 +124,21 @@ export default function ProductionScreen() {
 
   // Handle quantity change
   const handleQuantityChange = (flavor: string, product: string, value: string) => {
+    // Allow empty string during editing (user might be clearing input)
+    if (value === "") {
+      setQuantities((prev) => {
+        const next = new Map(prev);
+        next.set(`${flavor}:${product}`, 0);
+        return next;
+      });
+      return;
+    }
+
     const numValue = parseInt(value, 10);
-    if (isNaN(numValue) || numValue < 0) return;
+    // Reject fractions and negative values
+    if (isNaN(numValue) || numValue < 0 || !Number.isInteger(numValue)) {
+      return;
+    }
 
     setQuantities((prev) => {
       const next = new Map(prev);
@@ -92,6 +149,15 @@ export default function ProductionScreen() {
 
   // Handle save
   const handleSave = async () => {
+    // Check if viewing historical version - block save
+    if (productionStore.isReadOnly) {
+      Alert.alert(
+        "Modo Sólo Lectura",
+        "No puedes guardar cambios mientras ves una versión histórica."
+      );
+      return;
+    }
+
     const result = productionStore.saveReport(selectedDate, quantities);
     if (result.ok) {
       Alert.alert("Éxito", "Reporte guardado correctamente");
@@ -123,12 +189,83 @@ export default function ProductionScreen() {
     }
   };
 
-  // Date navigation
+  // Handle date navigation
   const changeDate = (days: number) => {
     const date = new Date(selectedDate);
     date.setDate(date.getDate() + days);
-    setSelectedDate(date.toISOString().split("T")[0]);
+    const newDate = date.toISOString().split("T")[0];
+    setSelectedDate(newDate);
+    productionStore.setCurrentDate(newDate);
   };
+
+  // Handle section navigation (tap to scroll)
+  const handleSectionPress = useCallback((sectionId: string) => {
+    setActiveSectionId(sectionId);
+    // Scroll to section would happen here - using offsets
+    const sectionOffsets: Record<string, number> = {
+      "date-selector": 0,
+      "summary": 200,
+      "production-table": 400,
+      "customer-distribution": 900,
+      "version-history": 1300,
+      "legacy-fixes": 1600,
+    };
+    scrollViewRef.current?.scrollTo({ y: sectionOffsets[sectionId] || 0, animated: true });
+  }, []);
+
+  // Handle scroll to track active section
+  const handleScroll = useCallback((event: { nativeEvent: { contentOffset: { y: number } } }) => {
+    const y = event.nativeEvent.contentOffset.y;
+    setScrollY(y);
+    // Approximate active section based on scroll position
+    if (y < 100) setActiveSectionId("date-selector");
+    else if (y < 300) setActiveSectionId("summary");
+    else if (y < 700) setActiveSectionId("production-table");
+    else if (y < 1000) setActiveSectionId("customer-distribution");
+    else if (y < 1400) setActiveSectionId("version-history");
+    else setActiveSectionId("legacy-fixes");
+  }, []);
+
+  // Handle version selection
+  const handleVersionSelect = useCallback((version: number) => {
+    productionStore.loadVersion(selectedDate, version);
+    // Rehydrate quantities after loading version
+    const entries = productionStore.selectEntriesForDate(selectedDate);
+    const newQuantities = new Map<string, number>();
+    FLAVOR_CODES.forEach((flavor) => {
+      PRODUCTION_PRODUCT_TYPES.forEach((product) => {
+        newQuantities.set(`${flavor}:${product}`, 0);
+      });
+    });
+    entries.forEach((entry) => {
+      newQuantities.set(`${entry.flavor}:${entry.product}`, entry.quantity);
+    });
+    setQuantities(newQuantities);
+  }, [productionStore, selectedDate]);
+
+  // Handle fix legacy order
+  const handleFixLegacyOrder = useCallback((orderId: string) => {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) return;
+
+    // Navigate to order list with fix mode
+    // The fix action is handled via the OrderCard/OrderDetails components
+    // which already have the onFix prop wired
+    Alert.alert(
+      "Corregir Sabor",
+      `Selecciona un sabor válido para ${order.gymName}`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        ...FLAVOR_CODES.map((flavor) => ({
+          text: flavor,
+          onPress: () => {
+            updateOrder(orderId, { flavor });
+            Alert.alert("Éxito", "Sabor actualizado correctamente");
+          },
+        })),
+      ]
+    );
+  }, [orders, updateOrder]);
 
   // Format date for display
   const formatDate = (dateStr: string) => {
@@ -166,7 +303,26 @@ export default function ProductionScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.content}>
+      {/* Mobile Section Navigation - only on phone breakpoint */}
+      {isMobile && (
+        <SectionNavigation
+          activeSectionId={activeSectionId}
+          onSectionPress={handleSectionPress}
+          colors={{
+            background: colors.white,
+            primary: colors.primary,
+            text: colors.text,
+            white: colors.white,
+          }}
+        />
+      )}
+
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.content}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
         {/* Date Selector */}
         <Animated.View
           entering={FadeInDown.duration(300)}
@@ -197,12 +353,12 @@ export default function ProductionScreen() {
         {/* Summary Cards */}
         <View style={styles.summaryCards}>
           <View style={[styles.summaryCard, { backgroundColor: colors.white }]}>
-            <Text style={[styles.summaryLabel, { color: colors.textLight }]} totalProduced={totalProduced} />
+            <Text style={[styles.summaryLabel, { color: colors.textLight }]}>Producido</Text>
             <Text style={[styles.summaryValue, { color: colors.text }]}>{totalProduced}</Text>
           </View>
 
           <View style={[styles.summaryCard, { backgroundColor: colors.white }]}>
-            <Text style={[styles.summaryLabel, { color: colors.textLight }]} totalAssigned={totalAssigned} />
+            <Text style={[styles.summaryLabel, { color: colors.textLight }]}>Asignado</Text>
             <Text style={[styles.summaryValue, { color: colors.text }]}>{totalAssigned}</Text>
           </View>
 
@@ -214,7 +370,7 @@ export default function ProductionScreen() {
               },
             ]}
           >
-            <Text style={[styles.summaryLabel, { color: colors.textLight }]} delta={totalProduced - totalAssigned} />
+            <Text style={[styles.summaryLabel, { color: colors.textLight }]}>Diferencia</Text>
             <Text
               style={[
                 styles.summaryValue,
@@ -228,7 +384,7 @@ export default function ProductionScreen() {
 
         {/* Production Table */}
         <View style={[styles.section, { backgroundColor: colors.white }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]} delta={totalProduced - totalAssigned} />
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Tabla de Producción</Text>
 
           <View style={styles.tableContainer}>
             {/* Table Header */}
@@ -254,18 +410,29 @@ export default function ProductionScreen() {
                 {PRODUCTION_PRODUCT_TYPES.map((product) => {
                   const key = `${flavor}:${product}`;
                   const value = quantities.get(key) || 0;
+                  const isReadOnly = productionStore.isReadOnly;
                   return (
-                    <TouchableOpacity
+                    <TextInput
                       key={key}
                       style={[
                         styles.quantityCell,
-                        { borderColor: colors.border, backgroundColor: colors.background },
+                        styles.quantityInput,
+                        { borderColor: colors.border, backgroundColor: colors.background, color: colors.text },
                       ]}
-                    >
-                      <Text style={[styles.quantityText, { color: colors.text }]}>
-                        {value}
-                      </Text>
-                    </TouchableOpacity>
+                      keyboardType="number-pad"
+                      value={String(value)}
+                      onChangeText={(text) => handleQuantityChange(flavor, product, text)}
+                      editable={!isReadOnly}
+                      onBlur={() => {
+                        // Validate on blur: ensure valid integer
+                        const keyStr = `${flavor}:${product}`;
+                        const numValue = quantities.get(keyStr) || 0;
+                        // Clamp to non-negative
+                        if (numValue < 0) {
+                          handleQuantityChange(flavor, product, "0");
+                        }
+                      }}
+                    />
                   );
                 })}
               </View>
@@ -275,10 +442,10 @@ export default function ProductionScreen() {
 
         {/* Customer Distribution */}
         <View style={[styles.section, { backgroundColor: colors.white }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]} totalOrders={ordersForDate.length} />
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Distribución de Clientes ({ordersForDate.length})</Text>
 
           {ordersForDate.length === 0 ? (
-            <Text style={[styles.emptyText, { color: colors.textLight }]} />
+            <Text style={[styles.emptyText, { color: colors.textLight }]}>No hay pedidos para esta fecha</Text>
           ) : (
             ordersForDate.map((order) => (
               <View
@@ -289,7 +456,9 @@ export default function ProductionScreen() {
                   <Text style={[styles.customerName, { color: colors.text }]}>
                     {order.gymName}
                   </Text>
-                  <Text style={[styles.customerFlavor, { color: colors.textLight }]} />
+                  <Text style={[styles.customerFlavor, { color: colors.textLight }]}>
+                    {order.flavor || "Sin sabor"}
+                  </Text>
                 </View>
                 <View style={styles.customerProducts}>
                   {order.products.map((product, idx) => (
@@ -316,6 +485,38 @@ export default function ProductionScreen() {
           )}
         </View>
 
+        {/* Version History */}
+        <VersionHistory
+          versions={versionsForDate}
+          currentVersion={productionStore.currentVersion}
+          onVersionSelect={handleVersionSelect}
+          onClose={() => {}}
+          colors={{
+            background: colors.white,
+            primary: colors.primary,
+            text: colors.text,
+            textLight: colors.textLight,
+            warning: colors.warning,
+            white: colors.white,
+            border: colors.border,
+          }}
+        />
+
+        {/* Legacy Fix List */}
+        <LegacyFixList
+          orders={ordersForDate}
+          onFix={handleFixLegacyOrder}
+          colors={{
+            background: colors.white,
+            primary: colors.primary,
+            text: colors.text,
+            textLight: colors.textLight,
+            warning: colors.warning,
+            white: colors.white,
+            border: colors.border,
+          }}
+        />
+
         {/* Save Button */}
         <TouchableOpacity
           style={[
@@ -326,11 +527,15 @@ export default function ProductionScreen() {
             },
           ]}
           onPress={handleSave}
-          disabled={!isBalanced}
+          disabled={!isBalanced || productionStore.isReadOnly}
         >
           <Save size={20} color={colors.white} />
           <Text style={styles.saveButtonText}>
-            {isBalanced ? "Guardar Reporte" : "Reconciliación pendiente"}
+            {productionStore.isReadOnly
+              ? "Modo Sólo Lectura"
+              : isBalanced
+              ? "Guardar Reporte"
+              : "Reconciliación pendiente"}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -467,6 +672,12 @@ const styles = StyleSheet.create({
   quantityText: {
     ...FONTS.body2,
     fontWeight: "600",
+  },
+  quantityInput: {
+    ...FONTS.body2,
+    fontWeight: "600",
+    textAlign: "center",
+    minWidth: 50,
   },
   emptyText: {
     ...FONTS.body2,

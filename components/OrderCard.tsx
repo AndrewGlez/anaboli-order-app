@@ -111,7 +111,9 @@ export default function OrderCard({ order, index = 0, onFix, isLegacy, legacyRea
           <View style={styles.headerRight}>
             {isLegacy && (
               <View style={[styles.legacyBadge, { backgroundColor: colors.warning + "20" }]}>
-                <Text style={[styles.legacyBadgeText, { color: colors.warning }]} />
+                <Text style={[styles.legacyBadgeText, { color: colors.warning }]}>
+                  Datos legacy
+                </Text>
               </View>
             )}
             <StatusBadge status={order.status} />

@@ -25,7 +25,8 @@ import { ArrowLeft, PlusCircle, Trash2 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { COLORS, FONTS, SIZES } from "@/constants/theme";
 import { useOrderStore } from "@/store/orderStore";
-import { ProductType, OrderStatus, Gasto } from "@/types";
+import { ProductType, OrderStatus, Gasto, FlavorCode } from "@/types";
+import { FLAVOR_CODES } from "@/constants/productionCatalog";
 import ProductSelector from "@/components/ProductSelector";
 import StatusSelector from "@/components/StatusSelector";
 import { useThemeStore } from "@/store/themeStore";
@@ -46,6 +47,8 @@ export default function NewOrderScreen() {
   const [status, setStatus] = useState<OrderStatus>("Entregado");
   const [notes, setNotes] = useState("");
   const [price, setPrice] = useState("");
+  const [flavor, setFlavor] = useState<FlavorCode | null>(null);
+  const [flavorError, setFlavorError] = useState<string | null>(null);
 
   // Gastos (expenses) state
   const [gastos, setGastos] = useState<Array<{ name: string; price: string }>>(
@@ -104,12 +107,19 @@ export default function NewOrderScreen() {
       return;
     }
 
+    if (!flavor) {
+      Alert.alert("Error", "Por favor selecciona un sabor");
+      setFlavorError("El sabor es obligatorio");
+      return;
+    }
+
     const newOrder = {
       id: Date.now().toString(),
       gymName,
       products,
       status,
       notes,
+      flavor,
       ...(price ? { price: parseFloat(price) } : {}),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -252,6 +262,53 @@ export default function NewOrderScreen() {
               Agregar Productos
             </Text>
           </TouchableOpacity>
+        </Animated.View>
+
+        {/* Flavor Selector - Mandatory */}
+        <Animated.View
+          style={styles.formGroup}
+          entering={FadeInDown.delay(175).springify()}
+        >
+          <Text style={[styles.label, { color: colors.text }]}>
+            Sabor *
+          </Text>
+          <View style={styles.flavorSelector}>
+            {FLAVOR_CODES.map((flavorCode) => (
+              <TouchableOpacity
+                key={flavorCode}
+                style={[
+                  styles.flavorOption,
+                  {
+                    borderColor: flavorError ? colors.error : colors.border,
+                    backgroundColor:
+                      flavor === flavorCode
+                        ? colors.primary
+                        : colors.white,
+                  },
+                ]}
+                onPress={() => {
+                  setFlavor(flavorCode as FlavorCode);
+                  setFlavorError(null);
+                }}
+              >
+                <Text
+                  style={{
+                    color:
+                      flavor === flavorCode ? colors.white : colors.text,
+                    fontSize: 12,
+                    fontWeight: flavor === flavorCode ? "600" : "400",
+                  }}
+                >
+                  {flavorCode}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {flavorError && (
+            <Text style={{ color: colors.error, marginTop: 8, fontSize: 14 }}>
+              {flavorError}
+            </Text>
+          )}
         </Animated.View>
 
         <Animated.View
@@ -486,5 +543,19 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     ...FONTS.h3,
+  },
+  // Flavor selector styles
+  flavorSelector: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  flavorOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    marginRight: 8,
+    marginBottom: 8,
   },
 });

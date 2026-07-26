@@ -3,7 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { OrderStore, Order, RawPersistedOrder, LegacyOrder, FlavorCode } from "@/types";
 import { useInventoryStore } from "./inventoryStore";
-import { isValidFlavor, assertFlavor } from "@/constants/productionCatalog";
+import { isValidFlavor, assertFlavor, FLAVOR_CODES } from "@/constants/productionCatalog";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 
@@ -168,6 +168,31 @@ export const useOrderStore = create<OrderStore>()(
                   "Formato de pedidos inválido. Faltan campos requeridos.",
               };
             }
+
+            // Validate flavor - must be a valid FlavorCode
+            if (!isValidFlavor(order.flavor)) {
+              return {
+                success: false,
+                message: `Flavor inválido para el pedido ${order.id}: '${order.flavor}'. Debe ser uno de: ${FLAVOR_CODES.join(", ")}`,
+              };
+            }
+
+            // Validate products - each product must have valid type and quantity
+            for (const product of order.products) {
+              const validTypes = ["A", "GNY", "C", "K"];
+              if (!validTypes.includes(product.type)) {
+                return {
+                  success: false,
+                  message: `Tipo de producto inválido para el pedido ${order.id}: '${product.type}'. Debe ser uno de: ${validTypes.join(", ")}`,
+                };
+              }
+              if (typeof product.quantity !== "number" || product.quantity < 0 || !Number.isInteger(product.quantity)) {
+                return {
+                  success: false,
+                  message: `Cantidad inválida para el pedido ${order.id}: '${product.quantity}'. Debe ser un entero no negativo.`,
+                };
+              }
+            }
           }
 
           // Import the orders using a state update function to ensure reactivity
@@ -232,8 +257,10 @@ export const useOrderStore = create<OrderStore>()(
       hydrateOrder: (raw: RawPersistedOrder): Order | LegacyOrder => {
         // Check if flavor exists and is valid
         if (!raw.flavor || !isValidFlavor(raw.flavor)) {
+          // Destructure to exclude the flavor property
+          const { flavor: _flavor, ...orderWithoutFlavor } = raw;
           const legacyOrder: LegacyOrder = {
-            order: { ...raw, flavor: undefined as unknown as FlavorCode },
+            order: orderWithoutFlavor as Omit<Order, "flavor">,
             legacyFlavor: raw.flavor,
             legacyReason: raw.flavor === null || raw.flavor === undefined || raw.flavor === "" ? "missing" : "invalid",
           };

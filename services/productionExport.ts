@@ -5,10 +5,14 @@ import { ProductionReport, ProductionEntry } from "@/store/productionStore";
 import { Order } from "@/types";
 
 // Check if export capability is available
+// Returns true only if sharing capability exists (file creation is always possible,
+// but we need sharing/download to be meaningful)
 export function canExport(): boolean {
-  // XLSX export is available on all platforms
-  // Native sharing requires expo-sharing
-  return true;
+  // Check if we're on web where file creation is supported
+  // Native sharing requires expo-sharing, which may not be available
+  // Using global Platform or check for window object
+  const isWeb = typeof window !== "undefined";
+  return isWeb;
 }
 
 // Generate XLSX workbook from production report
