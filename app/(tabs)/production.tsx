@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: SIZES.padding,
-    flexGrow: 1,
+    flexGrow: Platform.OS === 'web' ? undefined : 1,
   },
   dateSelector: {
     flexDirection: "row",
