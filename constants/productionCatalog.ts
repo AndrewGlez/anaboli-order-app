@@ -21,6 +21,20 @@ export function isValidFlavor(flavor: unknown): flavor is FlavorCode {
   return FLAVOR_CODES.includes(flavor as FlavorCode);
 }
 
+export const FLAVOR_COLORS: Record<FlavorCode, string> = {
+  "Apple Pie": "#e11d48",
+  "Berry Lover": "#7e22ce",
+  "Maracuyá Citrus": "#f97316",
+  "Higo Toffee": "#c084fc",
+  "Piña Coconut": "#9f1239",
+  "Maní Crunch": "#d6c49a",
+  "Expreso Coffee": "#78350f",
+  "Choco Power": "#451a03",
+  "Banana Coffee": "#facc15",
+  "Choco Nuts": "#92400e",
+  "Choco Menta": "#15803d",
+};
+
 export function assertFlavor(flavor: unknown): FlavorCode {
   if (!isValidFlavor(flavor)) {
     throw new Error(`Invalid flavor: ${flavor}. Must be one of: ${FLAVOR_CODES.join(", ")}`);

@@ -106,7 +106,7 @@ export default function OrdersScreen() {
           style={[styles.filterButton, { backgroundColor: colors.primary }]}
           onPress={() => setFilterVisible(true)}
         >
-          <Filter size={20} color={COLORS.white} />
+          <Filter size={20} color={colors.onPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -212,7 +212,7 @@ export default function OrdersScreen() {
         <EmptyState
           title="No se encontraron ordenes"
           description="Intenta cambiar tus filtros o crea una nueva orden"
-          icon={<Calendar size={50} color={COLORS.textLight} />}
+          icon={<Calendar size={50} color={colors.textLight} />}
         />
       )}
 

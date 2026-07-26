@@ -168,16 +168,16 @@ export default function InventoryScreen() {
             }
             accessibilityLabel="Import inventory from Excel"
           >
-            <Upload size={18} color={COLORS.white} />
-            <Text style={styles.actionButtonText}>Import</Text>
+            <Upload size={18} color={colors.onPrimary} />
+            <Text style={[styles.actionButtonText, { color: colors.onPrimary }]}>Import</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: colors.primary }]}
             onPress={handleExport}
             accessibilityLabel="Export inventory to Excel"
           >
-            <Download size={18} color={COLORS.white} />
-            <Text style={styles.actionButtonText}>Export</Text>
+            <Download size={18} color={colors.onPrimary} />
+            <Text style={[styles.actionButtonText, { color: colors.onPrimary }]}>Export</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>
@@ -209,7 +209,7 @@ export default function InventoryScreen() {
           onPress={() => setFormVisible(true)}
           accessibilityLabel="Add inventory item"
         >
-          <PlusCircle size={20} color={COLORS.white} />
+          <PlusCircle size={20} color={colors.onPrimary} />
         </TouchableOpacity>
       </Animated.View>
 
@@ -248,7 +248,7 @@ export default function InventoryScreen() {
               ? "Agrega items manualmente o importa desde Excel"
               : "Intenta cambiar tu búsqueda"
           }
-          icon={<Package size={50} color={COLORS.textLight} />}
+          icon={<Package size={50} color={colors.textLight} />}
         />
       )}
 
@@ -313,7 +313,6 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   actionButtonText: {
-    color: COLORS.white,
     ...FONTS.body3,
     fontWeight: "600",
   },

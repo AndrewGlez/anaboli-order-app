@@ -257,8 +257,8 @@ export default function NewOrderScreen() {
             style={[styles.addButton, { backgroundColor: colors.primary }]}
             onPress={handleAddProduct}
           >
-            <PlusCircle size={20} color={colors.white} />
-            <Text style={[styles.addButtonText, { color: colors.white }]}>
+            <PlusCircle size={20} color={colors.onPrimary} />
+            <Text style={[styles.addButtonText, { color: colors.onPrimary }]}>
               Agregar Productos
             </Text>
           </TouchableOpacity>
@@ -421,8 +421,8 @@ export default function NewOrderScreen() {
             style={[styles.addButton, { backgroundColor: colors.warning }]}
             onPress={handleAddGasto}
           >
-            <PlusCircle size={20} color={colors.white} />
-            <Text style={[styles.addButtonText, { color: colors.white }]}>
+            <PlusCircle size={20} color={colors.onPrimary} />
+            <Text style={[styles.addButtonText, { color: colors.onPrimary }]}>
               Agregar Gasto
             </Text>
           </TouchableOpacity>
@@ -434,7 +434,7 @@ export default function NewOrderScreen() {
           style={[styles.submitButton, { backgroundColor: colors.primary }]}
           onPress={handleSubmit}
         >
-          <Text style={[styles.submitButtonText, { color: colors.white }]}>
+          <Text style={[styles.submitButtonText, { color: colors.onPrimary }]}>
             Crear Orden
           </Text>
         </TouchableOpacity>

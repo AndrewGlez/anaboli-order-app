@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { AlertCircle, BarChart3, CheckCircle2 } from "lucide-react-native";
 import { FONTS, SIZES } from "@/constants/theme";
 import { buildReconciliationState, statusAccentColor } from "./reconciliationPanel";
 
@@ -39,9 +40,15 @@ export function ReconciliationPanel({ totalProduced, totalAssigned, colors }: Re
 
       <View style={styles.body}>
         <View style={styles.headerRow}>
+          <BarChart3 size={22} color={accent} />
           <Text style={[styles.statusLabel, { color: accent }]} numberOfLines={1}>
             {state.message}
           </Text>
+          {isBalanced ? (
+            <CheckCircle2 size={22} color={colors.success} />
+          ) : (
+            <AlertCircle size={22} color={colors.error} />
+          )}
         </View>
 
         <View style={[styles.metricsRow, { borderTopColor: colors.border }]}>
@@ -98,6 +105,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     marginBottom: 12,
   },
   statusLabel: {

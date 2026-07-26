@@ -11,14 +11,14 @@ import {
   type ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Calendar, Printer, Share2, Save, ChevronLeft, ChevronRight } from "lucide-react-native";
+import { Calendar, ClipboardList, Printer, Share2, Save, ChevronLeft, ChevronRight, Table2, Users } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { FONTS, SIZES, type ColorSet } from "@/constants/theme";
 import { useThemeStore } from "@/store/themeStore";
 import { ReconciliationPanel } from "@/components/production/ReconciliationPanel";
 import { useOrderStore } from "@/store/orderStore";
 import { useProductionStore } from "@/store/productionStore";
-import { FLAVOR_CODES, PRODUCTION_PRODUCT_TYPES } from "@/constants/productionCatalog";
+import { FLAVOR_CODES, FLAVOR_COLORS, PRODUCTION_PRODUCT_TYPES } from "@/constants/productionCatalog";
 import { PRODUCT_LABELS } from "@/components/production/mobileProductionLayout";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { canPrint, printReport } from "@/services/web/productionPrint";
@@ -307,7 +307,10 @@ export default function ProductionScreen() {
     >
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.text }]}>Producción Diaria</Text>
+        <View style={styles.titleRow}>
+          <ClipboardList size={22} color={colors.primary} />
+          <Text style={[styles.title, { color: colors.text }]}>Producción Diaria</Text>
+        </View>
         <View style={styles.headerActions}>
           {canPrint() && (
             <TouchableOpacity
@@ -401,17 +404,21 @@ export default function ProductionScreen() {
             quantities={quantities}
             isReadOnly={productionStore.isReadOnly}
             onQuantityChange={handleQuantityChange}
-            colors={{
-              background: colors.background,
-              text: colors.text,
-              textLight: colors.textLight,
-              border: colors.border,
-              white: colors.white,
-            }}
+          colors={{
+            background: colors.background,
+            text: colors.text,
+            textLight: colors.textLight,
+            border: colors.border,
+            white: colors.white,
+            primary: colors.primary,
+          }}
           />
         ) : (
           <View style={[styles.section, { backgroundColor: colors.white }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Tabla de Producción</Text>
+            <View style={styles.sectionTitleRow}>
+              <Table2 size={22} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Tabla de Producción</Text>
+            </View>
 
             <View style={styles.tableContainer}>
               {/* Table Header */}
@@ -433,7 +440,17 @@ export default function ProductionScreen() {
                   key={flavor}
                   style={[styles.tableRow, { borderBottomColor: colors.border }]}
                 >
-                  <Text style={[styles.flavorCell, { color: colors.text }]}>{flavor}</Text>
+                  <View style={styles.flavorCellContent}>
+                    <View
+                      style={[
+                        styles.flavorColorIndicator,
+                        { backgroundColor: FLAVOR_COLORS[flavor] },
+                      ]}
+                    />
+                    <Text style={[styles.flavorCell, { color: colors.text }]}>
+                      {flavor}
+                    </Text>
+                  </View>
                   {PRODUCTION_PRODUCT_TYPES.map((product) => {
                     const key = `${flavor}:${product}`;
                     const value = quantities.get(key) || 0;
@@ -471,7 +488,10 @@ export default function ProductionScreen() {
 
         {/* Customer Distribution */}
         <View style={[styles.section, { backgroundColor: colors.white }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Distribución de Clientes ({ordersForDate.length})</Text>
+          <View style={styles.sectionTitleRow}>
+            <Users size={22} color={colors.primary} />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Distribución de Clientes ({ordersForDate.length})</Text>
+          </View>
 
           {ordersForDate.length === 0 ? (
             <Text style={[styles.emptyText, { color: colors.textLight }]}>No hay pedidos para esta fecha</Text>
@@ -615,6 +635,17 @@ const styles = StyleSheet.create({
   title: {
     ...FONTS.h2,
   },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  sectionTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 12,
+  },
   headerActions: {
     flexDirection: "row",
     gap: 8,
@@ -681,8 +712,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     alignItems: "center",
   },
-  flavorCell: {
+  flavorCellContent: {
     flex: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  flavorColorIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 2,
+  },
+  flavorCell: {
     ...FONTS.body3,
   },
   productCell: {

@@ -1,5 +1,6 @@
 import {
   FLAVOR_CODES,
+  FLAVOR_COLORS,
   PRODUCTION_PRODUCT_TYPES,
   isValidFlavor,
 } from "@/constants/productionCatalog";
@@ -63,6 +64,21 @@ describe("productionCatalog", () => {
     it("returns false for random invalid strings", () => {
       expect(isValidFlavor("Invalid Flavor")).toBe(false);
       expect(isValidFlavor("Chocolate")).toBe(false);
+    });
+  });
+
+  describe("FLAVOR_COLORS", () => {
+    it("has a color entry for every flavor", () => {
+      FLAVOR_CODES.forEach((flavor) => {
+        expect(FLAVOR_COLORS[flavor]).toBeTruthy();
+      });
+    });
+
+    it("each color is a valid 7-character hex string", () => {
+      FLAVOR_CODES.forEach((flavor) => {
+        const color = FLAVOR_COLORS[flavor];
+        expect(color).toMatch(/^#[0-9a-fA-F]{6}$/);
+      });
     });
   });
 });

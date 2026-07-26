@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, TextInput } from "react-native";
+import { Table2 } from "lucide-react-native";
 import { FONTS, SIZES } from "@/constants/theme";
+import { FLAVOR_COLORS } from "@/constants/productionCatalog";
 import { groupFlavorsForMobile } from "./mobileProductionLayout";
 
 interface MobileProductionTableProps {
@@ -13,6 +15,7 @@ interface MobileProductionTableProps {
     textLight: string;
     border: string;
     white: string;
+    primary: string;
   };
 }
 
@@ -26,7 +29,10 @@ export function MobileProductionTable({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.white }]}>
-      <Text style={[styles.title, { color: colors.text }]}>Tabla de Producción</Text>
+      <View style={styles.titleRow}>
+        <Table2 size={22} color={colors.primary} />
+        <Text style={[styles.title, { color: colors.text }]}>Tabla de Producción</Text>
+      </View>
       <Text style={[styles.hint, { color: colors.textLight }]}>
         Toca cada producto para cargar la cantidad producida.
       </Text>
@@ -36,12 +42,20 @@ export function MobileProductionTable({
           key={row.flavor}
           style={[styles.flavorRow, { borderBottomColor: colors.border }]}
         >
-          <Text
-            style={[styles.flavorName, { color: colors.text }]}
-            numberOfLines={1}
-          >
-            {row.flavor}
-          </Text>
+          <View style={styles.flavorNameRow}>
+            <View
+              style={[
+                styles.flavorColorIndicator,
+                { backgroundColor: FLAVOR_COLORS[row.flavor as keyof typeof FLAVOR_COLORS] },
+              ]}
+            />
+            <Text
+              style={[styles.flavorName, { color: colors.text }]}
+              numberOfLines={1}
+            >
+              {row.flavor}
+            </Text>
+          </View>
 
           <View style={styles.inputsRow}>
             {row.cells.map((cell) => {
@@ -90,6 +104,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...FONTS.h3,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     marginBottom: 4,
   },
   hint: {
@@ -100,10 +119,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
   },
+  flavorNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  flavorColorIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 2,
+  },
   flavorName: {
     ...FONTS.body2,
     fontWeight: "600",
-    marginBottom: 8,
   },
   inputsRow: {
     flexDirection: "row",

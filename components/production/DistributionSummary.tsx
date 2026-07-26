@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { ChartPie } from "lucide-react-native";
+import { PieChart } from "lucide-react-native";
 import { FONTS, SIZES } from "@/constants/theme";
 import { PRODUCTION_PRODUCT_TYPES } from "@/constants/productionCatalog";
 import { DistributionSummary as DistributionSummaryData } from "@/services/productionSelectors";
@@ -32,7 +32,7 @@ export function DistributionSummary({ summary, colors }: DistributionSummaryProp
     return (
       <View style={[styles.container, { backgroundColor: colors.white }]}>
         <View style={styles.header}>
-          <ChartPie size={20} color={colors.primary} />
+          <PieChart size={20} color={colors.primary} />
           <Text style={[styles.title, { color: colors.text }]}>Resumen de Distribución</Text>
         </View>
         <Text style={[styles.emptyText, { color: colors.textLight }]}>
@@ -45,7 +45,7 @@ export function DistributionSummary({ summary, colors }: DistributionSummaryProp
   return (
     <View style={[styles.container, { backgroundColor: colors.white }]}>
       <View style={styles.header}>
-        <ChartPie size={20} color={colors.primary} />
+        <PieChart size={20} color={colors.primary} />
         <Text style={[styles.title, { color: colors.text }]}>Resumen de Distribución</Text>
         <View style={[styles.countBadge, { backgroundColor: colors.primary }]}>
           <Text style={[styles.countText, { color: colors.white }]}>
