@@ -15,7 +15,7 @@ export const useInventoryStore = create<InventoryStore>()(
   persist(
     (set, get) => ({
       items: [],
-      hydrated: false,
+      hydrated: true,
 
       addItem: (input) =>
         set((state) => ({
