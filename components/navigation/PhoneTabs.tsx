@@ -1,22 +1,20 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { StyleSheet } from 'react-native';
-import { COLORS } from '@/constants/theme';
 import { useThemeStore } from '@/store/themeStore';
 import { TAB_ITEMS } from './tabConfig';
 
 export function PhoneTabs() {
-  const { theme } = useThemeStore();
-  const colors = COLORS.themed(theme);
+  const colors = useThemeStore((state) => state.resolvedColors);
 
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textLight,
+        tabBarInactiveTintColor: colors.sidebarText,
         tabBarStyle: [
           styles.tabBar,
-          { backgroundColor: colors.background, borderColor: colors.border },
+          { backgroundColor: colors.sidebar, borderColor: colors.sidebarBorder },
         ],
         tabBarLabelStyle: styles.tabBarLabel,
         headerShown: false,
@@ -42,9 +40,7 @@ export function PhoneTabs() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: COLORS.white,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
     height: 60,
     paddingBottom: 5,
     paddingTop: 5,

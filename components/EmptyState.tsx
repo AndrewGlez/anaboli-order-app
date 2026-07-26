@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { COLORS, FONTS, SIZES } from "@/constants/theme";
+import { useThemeStore } from "@/store/themeStore";
 
 interface EmptyStateProps {
   title: string;
@@ -13,11 +14,14 @@ export default function EmptyState({
   description,
   icon,
 }: EmptyStateProps) {
+  const { theme } = useThemeStore();
+  const colors = COLORS.themed(theme);
+
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>{icon}</View>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.description}>{description}</Text>
+      <Text style={[styles.title, { color: colors.textLight }]}>{title}</Text>
+      <Text style={[styles.description, { color: colors.textLight }]}>{description}</Text>
     </View>
   );
 }
@@ -34,13 +38,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...FONTS.h2,
-    color: COLORS.textLight,
     marginBottom: 8,
     textAlign: "center",
   },
   description: {
     ...FONTS.body2,
-    color: COLORS.textLight,
     textAlign: "center",
   },
 });

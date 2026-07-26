@@ -23,7 +23,7 @@ exports[`ImportPreview renders correctly with all errors 1`] = `
   >
     Import Preview
   </Text>
-  <RCTScrollView
+  <ScrollView
     accessibilityLabel="Import results"
     accessibilityRole="list"
     style={
@@ -32,49 +32,47 @@ exports[`ImportPreview renders correctly with all errors 1`] = `
       }
     }
   >
-    <View>
-      <View
-        accessibilityRole="text"
+    <View
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderBottomColor": "#E5E7EB",
+            "borderBottomWidth": 1,
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "padding": 10,
+          },
+          {
+            "backgroundColor": "#FEF2F2",
+          },
+        ]
+      }
+    >
+      <Text
         style={
-          [
-            {
-              "alignItems": "center",
-              "borderBottomColor": "#E5E7EB",
-              "borderBottomWidth": 1,
-              "flexDirection": "row",
-              "justifyContent": "space-between",
-              "padding": 10,
-            },
-            {
-              "backgroundColor": "#FEF2F2",
-            },
-          ]
+          {
+            "color": "#374151",
+            "fontWeight": "600",
+          }
         }
       >
-        <Text
-          style={
-            {
-              "color": "#374151",
-              "fontWeight": "600",
-            }
+        Row 
+        1
+      </Text>
+      <Text
+        style={
+          {
+            "color": "#DC2626",
+            "fontSize": 12,
           }
-        >
-          Row 
-          1
-        </Text>
-        <Text
-          style={
-            {
-              "color": "#DC2626",
-              "fontSize": 12,
-            }
-          }
-        >
-          Missing headers
-        </Text>
-      </View>
+        }
+      >
+        Missing headers
+      </Text>
     </View>
-  </RCTScrollView>
+  </ScrollView>
   <View
     style={
       {
@@ -85,38 +83,11 @@ exports[`ImportPreview renders correctly with all errors 1`] = `
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "borderRadius": 8,
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 10,
         }
@@ -132,43 +103,22 @@ exports[`ImportPreview renders correctly with all errors 1`] = `
       >
         Cancel
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": true,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={false}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      disabled={true}
+      onPress={[Function]}
       style={
-        {
-          "backgroundColor": "#9CA3AF",
-          "borderRadius": 8,
-          "opacity": 1,
-          "paddingHorizontal": 16,
-          "paddingVertical": 10,
-        }
+        [
+          {
+            "backgroundColor": "#16A34A",
+            "borderRadius": 8,
+            "paddingHorizontal": 16,
+            "paddingVertical": 10,
+          },
+          {
+            "backgroundColor": "#9CA3AF",
+          },
+        ]
       }
     >
       <Text
@@ -183,7 +133,7 @@ exports[`ImportPreview renders correctly with all errors 1`] = `
         0
          rows)
       </Text>
-    </View>
+    </TouchableOpacity>
   </View>
 </View>
 `;
@@ -211,7 +161,7 @@ exports[`ImportPreview renders correctly with mixed results 1`] = `
   >
     Import Preview
   </Text>
-  <RCTScrollView
+  <ScrollView
     accessibilityLabel="Import results"
     accessibilityRole="list"
     style={
@@ -220,129 +170,127 @@ exports[`ImportPreview renders correctly with mixed results 1`] = `
       }
     }
   >
-    <View>
-      <View
-        accessibilityRole="text"
+    <View
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderBottomColor": "#E5E7EB",
+            "borderBottomWidth": 1,
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "padding": 10,
+          },
+          {
+            "backgroundColor": "#F0FDF4",
+          },
+        ]
+      }
+    >
+      <Text
         style={
-          [
-            {
-              "alignItems": "center",
-              "borderBottomColor": "#E5E7EB",
-              "borderBottomWidth": 1,
-              "flexDirection": "row",
-              "justifyContent": "space-between",
-              "padding": 10,
-            },
-            {
-              "backgroundColor": "#F0FDF4",
-            },
-          ]
+          {
+            "color": "#374151",
+            "fontWeight": "600",
+          }
         }
       >
-        <Text
-          style={
-            {
-              "color": "#374151",
-              "fontWeight": "600",
-            }
-          }
-        >
-          Row 
-          1
-        </Text>
-        <Text
-          style={
-            {
-              "color": "#16A34A",
-              "fontWeight": "600",
-            }
-          }
-        >
-          ✓ Valid
-        </Text>
-      </View>
-      <View
-        accessibilityRole="text"
+        Row 
+        1
+      </Text>
+      <Text
         style={
-          [
-            {
-              "alignItems": "center",
-              "borderBottomColor": "#E5E7EB",
-              "borderBottomWidth": 1,
-              "flexDirection": "row",
-              "justifyContent": "space-between",
-              "padding": 10,
-            },
-            {
-              "backgroundColor": "#FEF2F2",
-            },
-          ]
+          {
+            "color": "#16A34A",
+            "fontWeight": "600",
+          }
         }
       >
-        <Text
-          style={
-            {
-              "color": "#374151",
-              "fontWeight": "600",
-            }
-          }
-        >
-          Row 
-          2
-        </Text>
-        <Text
-          style={
-            {
-              "color": "#DC2626",
-              "fontSize": 12,
-            }
-          }
-        >
-          Invalid quantity
-        </Text>
-      </View>
-      <View
-        accessibilityRole="text"
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderBottomColor": "#E5E7EB",
-              "borderBottomWidth": 1,
-              "flexDirection": "row",
-              "justifyContent": "space-between",
-              "padding": 10,
-            },
-            {
-              "backgroundColor": "#F0FDF4",
-            },
-          ]
-        }
-      >
-        <Text
-          style={
-            {
-              "color": "#374151",
-              "fontWeight": "600",
-            }
-          }
-        >
-          Row 
-          3
-        </Text>
-        <Text
-          style={
-            {
-              "color": "#16A34A",
-              "fontWeight": "600",
-            }
-          }
-        >
-          ✓ Valid
-        </Text>
-      </View>
+        ✓ Valid
+      </Text>
     </View>
-  </RCTScrollView>
+    <View
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderBottomColor": "#E5E7EB",
+            "borderBottomWidth": 1,
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "padding": 10,
+          },
+          {
+            "backgroundColor": "#FEF2F2",
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#374151",
+            "fontWeight": "600",
+          }
+        }
+      >
+        Row 
+        2
+      </Text>
+      <Text
+        style={
+          {
+            "color": "#DC2626",
+            "fontSize": 12,
+          }
+        }
+      >
+        Invalid quantity
+      </Text>
+    </View>
+    <View
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderBottomColor": "#E5E7EB",
+            "borderBottomWidth": 1,
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "padding": 10,
+          },
+          {
+            "backgroundColor": "#F0FDF4",
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#374151",
+            "fontWeight": "600",
+          }
+        }
+      >
+        Row 
+        3
+      </Text>
+      <Text
+        style={
+          {
+            "color": "#16A34A",
+            "fontWeight": "600",
+          }
+        }
+      >
+        ✓ Valid
+      </Text>
+    </View>
+  </ScrollView>
   <View
     style={
       {
@@ -353,38 +301,11 @@ exports[`ImportPreview renders correctly with mixed results 1`] = `
       }
     }
   >
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    <TouchableOpacity
+      onPress={[Function]}
       style={
         {
           "borderRadius": 8,
-          "opacity": 1,
           "paddingHorizontal": 16,
           "paddingVertical": 10,
         }
@@ -400,43 +321,20 @@ exports[`ImportPreview renders correctly with mixed results 1`] = `
       >
         Cancel
       </Text>
-    </View>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": false,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onClick={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
+    </TouchableOpacity>
+    <TouchableOpacity
+      disabled={false}
+      onPress={[Function]}
       style={
-        {
-          "backgroundColor": "#16A34A",
-          "borderRadius": 8,
-          "opacity": 1,
-          "paddingHorizontal": 16,
-          "paddingVertical": 10,
-        }
+        [
+          {
+            "backgroundColor": "#16A34A",
+            "borderRadius": 8,
+            "paddingHorizontal": 16,
+            "paddingVertical": 10,
+          },
+          false,
+        ]
       }
     >
       <Text
@@ -451,7 +349,7 @@ exports[`ImportPreview renders correctly with mixed results 1`] = `
         2
          rows)
       </Text>
-    </View>
+    </TouchableOpacity>
   </View>
 </View>
 `;

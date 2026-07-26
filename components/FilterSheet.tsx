@@ -132,8 +132,8 @@ export default function FilterSheet({
                   key={gym}
                   style={[
                     styles.optionButton,
-                    ,
-                    activeFilters.gym === gym && styles.activeOption,
+                    { borderColor: colors.border },
+                    activeFilters.gym === gym && [styles.activeOption, { backgroundColor: colors.primary, borderColor: colors.primary }],
                   ]}
                   onPress={() =>
                     setActiveFilters({
@@ -145,7 +145,7 @@ export default function FilterSheet({
                   <Text
                     style={[
                       { color: colors.textLight },
-                      activeFilters.gym === gym && styles.activeOptionText,
+                      activeFilters.gym === gym && [styles.activeOptionText, { color: colors.white }],
                     ]}
                   >
                     {gym}
@@ -167,8 +167,9 @@ export default function FilterSheet({
                   key={product.type}
                   style={[
                     styles.optionButton,
+                    { borderColor: colors.border },
                     activeFilters.product === product.type &&
-                      styles.activeOption,
+                      [styles.activeOption, { backgroundColor: colors.primary, borderColor: colors.primary }],
                   ]}
                   onPress={() =>
                     setActiveFilters({
@@ -184,7 +185,7 @@ export default function FilterSheet({
                     style={[
                       { color: colors.textLight },
                       activeFilters.product === product.type &&
-                        styles.activeOptionText,
+                        [styles.activeOptionText, { color: colors.white }],
                     ]}
                   >
                     {product.label} ({product.type})
@@ -206,7 +207,8 @@ export default function FilterSheet({
                   key={status}
                   style={[
                     styles.optionButton,
-                    activeFilters.status === status && styles.activeOption,
+                    { borderColor: colors.border },
+                    activeFilters.status === status && [styles.activeOption, { backgroundColor: colors.primary, borderColor: colors.primary }],
                   ]}
                   onPress={() =>
                     setActiveFilters({
@@ -219,7 +221,7 @@ export default function FilterSheet({
                     style={[
                       { color: colors.textLight },
                       activeFilters.status === status &&
-                        styles.activeOptionText,
+                        [styles.activeOptionText, { color: colors.white }],
                     ]}
                   >
                     {status}
@@ -232,15 +234,15 @@ export default function FilterSheet({
 
         <View style={[styles.footer, { backgroundColor: colors.background }]}>
           <TouchableOpacity
-            style={styles.resetButton}
+            style={[styles.resetButton, { borderColor: colors.border }]}
             onPress={() =>
               setActiveFilters({ gym: "", product: "", status: "" })
             }
           >
-            <Text style={{ color: colors.text }}>Reiniciar Filtros</Text>
+            <Text style={[styles.resetButtonText, { color: colors.text }]}>Reiniciar Filtros</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.applyButton} onPress={onClose}>
-            <Text style={styles.applyButtonText}>Aplicar</Text>
+          <TouchableOpacity style={[styles.applyButton, { backgroundColor: colors.primary }]} onPress={onClose}>
+            <Text style={[styles.applyButtonText, { color: colors.white }]}>Aplicar</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>
@@ -260,7 +262,6 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   container: {
-    backgroundColor: COLORS.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: "80%",
@@ -271,11 +272,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   title: {
     ...FONTS.h2,
-    color: COLORS.text,
   },
   content: {
     padding: 16,
@@ -286,7 +285,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...FONTS.h3,
-    color: COLORS.text,
     marginBottom: 12,
   },
   optionsContainer: {
@@ -298,50 +296,38 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: SIZES.radius,
     borderWidth: 1,
-    borderColor: COLORS.border,
     marginRight: 8,
     marginBottom: 8,
   },
-  activeOption: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
+  activeOption: {},
   optionText: {
     ...FONTS.body3,
-    color: COLORS.text,
   },
-  activeOptionText: {
-    color: COLORS.white,
-  },
+  activeOptionText: {},
   footer: {
     flexDirection: "row",
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
   },
   resetButton: {
     flex: 1,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: COLORS.border,
     borderRadius: SIZES.radius,
     alignItems: "center",
     marginRight: 8,
   },
   resetButtonText: {
     ...FONTS.body2,
-    color: COLORS.text,
   },
   applyButton: {
     flex: 1,
     paddingVertical: 12,
-    backgroundColor: COLORS.primary,
     borderRadius: SIZES.radius,
     alignItems: "center",
     marginLeft: 8,
   },
   applyButtonText: {
     ...FONTS.body2,
-    color: COLORS.white,
   },
 });

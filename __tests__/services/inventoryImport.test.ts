@@ -22,7 +22,7 @@ describe("fileImport", () => {
       (global as any).FileReader = class {
         result: ArrayBuffer | null = null;
         onload: ((e: any) => void) | null = null;
-        readAsArrayBuffer(f: File) {
+        readAsArrayBuffer(_f: File) {
           setTimeout(() => {
             this.result = buf;
             if (this.onload) {
@@ -63,7 +63,7 @@ describe("fileImport", () => {
       (global as any).FileReader = class {
         result: ArrayBuffer | null = null;
         onload: ((e: any) => void) | null = null;
-        readAsArrayBuffer(f: File) {
+        readAsArrayBuffer(_f: File) {
           setTimeout(() => {
             this.result = buf;
             if (this.onload) {
@@ -105,7 +105,7 @@ describe("fileImport", () => {
       (global as any).FileReader = class {
         result: ArrayBuffer | null = null;
         onload: ((e: any) => void) | null = null;
-        readAsArrayBuffer(f: File) {
+        readAsArrayBuffer(_f: File) {
           setTimeout(() => {
             this.result = buf;
             if (this.onload) {
@@ -150,7 +150,7 @@ describe("fileImport", () => {
       (global as any).FileReader = class {
         result: ArrayBuffer | null = null;
         onload: ((e: any) => void) | null = null;
-        readAsArrayBuffer(f: File) {
+        readAsArrayBuffer(_f: File) {
           setTimeout(() => {
             this.result = buf;
             if (this.onload) {

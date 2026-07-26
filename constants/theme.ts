@@ -1,69 +1,102 @@
+export type ResolvedTheme = "light" | "dark";
+
 export const LIGHT_COLORS = {
-  primary: "#4361ee",
-  secondary: "#3f37c9",
-  accent: "#f72585",
+  // Brand
+  primary: "#7cb342",
+  secondary: "#8bc34a",
+  accent: "#689f38",
 
-  success: "#4ade80",
-  warning: "#fbbf24",
-  error: "#ef4444",
+  // Semantic
+  success: "#7cb342",
+  warning: "#ff9800",
+  error: "#f44336",
 
-  text: "#1e293b",
-  textLight: "#64748b",
+  // Text
+  text: "#1a1a1a",
+  textLight: "#757575",
+  textOnDark: "#ffffff",
 
-  background: "#f8fafc",
+  // Surfaces
+  background: "#f5f5f5",
+  surface: "#ffffff",
   white: "#ffffff",
-  border: "#e2e8f0",
+  border: "#e0e0e0",
+  onPrimary: "#ffffff",
 
-  // Product colors
-  productA: "#4361ee", // Avena - Blue
-  productGNY: "#fb7185", // Galletas - Pink
-  productC: "#fb923c", // Cookies - Orange
-  productK: "#a78bfa", // Ketos - Purple
+  // Sidebar (theme-independent dark chrome)
+  sidebar: "#1a1a1a",
+  sidebarBorder: "#333333",
+  sidebarText: "#a3a3a3",
+  sidebarActiveText: "#8bc34a",
+  sidebarTitle: "#ffffff",
 
-  // Status colors
-  statusVisto: "#64748b", // Gray
-  statusVistoP: "#84cc16", // Green
-  statusVistoTRF: "#06b6d4", // Cyan
-  statusObservacion: "#fbbf24", // Yellow
-  statusVistoSP: "#f97316", // Orange
-  statusVistoTRFSP: "#8b5cf6", // Purple
-};
-
-export const DARK_COLORS = {
-  primary: "#4361ee",
-  secondary: "#3f37c9",
-  accent: "#f72585",
-
-  success: "#4ade80",
-  warning: "#fbbf24",
-  error: "#ef4444",
-
-  text: "#f8fafc",
-  textLight: "#94a3b8",
-
-  background: "#0f172a",
-  white: "#1e293b",
-  border: "#334155",
-
-  // Product colors remain the same for consistency
+  // Product colors (brand-specific, outside theme system)
   productA: "#4361ee",
   productGNY: "#fb7185",
   productC: "#fb923c",
   productK: "#a78bfa",
 
-  // Status colors remain the same for consistency
-  statusVisto: "#64748b",
-  statusVistoP: "#84cc16",
+  // Status colors
+  statusVisto: "#757575",
+  statusVistoP: "#7cb342",
   statusVistoTRF: "#06b6d4",
-  statusObservacion: "#fbbf24",
-  statusVistoSP: "#f97316",
+  statusObservacion: "#ff9800",
+  statusVistoSP: "#ff9800",
   statusVistoTRFSP: "#8b5cf6",
 };
 
-// Dynamic colors based on theme
+export const DARK_COLORS = {
+  // Brand (brighter for dark backgrounds)
+  primary: "#8bc34a",
+  secondary: "#7cb342",
+  accent: "#aed581",
+
+  // Semantic
+  success: "#8bc34a",
+  warning: "#ffb74d",
+  error: "#ef5350",
+
+  // Text
+  text: "#f5f5f5",
+  textLight: "#b0b0b0",
+  textOnDark: "#ffffff",
+
+  // Surfaces
+  background: "#121212",
+  surface: "#1e1e1e",
+  white: "#1e1e1e",
+  border: "#333333",
+  onPrimary: "#ffffff",
+
+  // Sidebar (theme-independent dark chrome)
+  sidebar: "#111111",
+  sidebarBorder: "#262626",
+  sidebarText: "#a3a3a3",
+  sidebarActiveText: "#8bc34a",
+  sidebarTitle: "#f5f5f5",
+
+  // Product colors (brand-specific, outside theme system)
+  productA: "#4361ee",
+  productGNY: "#fb7185",
+  productC: "#fb923c",
+  productK: "#a78bfa",
+
+  // Status colors
+  statusVisto: "#757575",
+  statusVistoP: "#7cb342",
+  statusVistoTRF: "#06b6d4",
+  statusObservacion: "#ff9800",
+  statusVistoSP: "#ff9800",
+  statusVistoTRFSP: "#8b5cf6",
+};
+
+export type ColorSet = typeof LIGHT_COLORS;
+
+// Static tokens that are theme-independent (product colors, status colors, sidebar)
+// Theme-dependent tokens should be accessed via COLORS.themed(theme)
 export const COLORS = {
   ...LIGHT_COLORS,
-  themed: (theme: "light" | "dark") => {
+  themed: (theme: ResolvedTheme): ColorSet => {
     return theme === "light" ? LIGHT_COLORS : DARK_COLORS;
   },
 };

@@ -21,7 +21,7 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, Share2 } from "lucide-react-native";
 import { useOrderStore } from "@/store/orderStore";
-import { COLORS, FONTS, SIZES } from "@/constants/theme";
+import { COLORS, FONTS, SIZES, type ColorSet } from "@/constants/theme";
 import { ProductType, OrderStatus, Order, Gasto } from "@/types";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
@@ -456,7 +456,7 @@ export default function AnalyticsScreen() {
               style={[
                 styles.timeFrameText,
                 {
-                  color: timeFrame === "day" ? COLORS.white : colors.textLight,
+                  color: timeFrame === "day" ? colors.onPrimary : colors.textLight,
                 },
               ]}
             >
@@ -471,7 +471,7 @@ export default function AnalyticsScreen() {
               style={[
                 styles.timeFrameText,
                 {
-                  color: timeFrame === "week" ? COLORS.white : colors.textLight,
+                  color: timeFrame === "week" ? colors.onPrimary : colors.textLight,
                 },
               ]}
             >
@@ -487,7 +487,7 @@ export default function AnalyticsScreen() {
                 styles.timeFrameText,
                 {
                   color:
-                    timeFrame === "month" ? COLORS.white : colors.textLight,
+                    timeFrame === "month" ? colors.onPrimary : colors.textLight,
                 },
               ]}
             >
@@ -502,15 +502,15 @@ export default function AnalyticsScreen() {
           ref={analyticsRef}
           style={[
             styles.analyticsContainer,
-            { backgroundColor: colors.background },
+            { backgroundColor: colors.white },
           ]}
         >
           <Animated.View
             style={styles.dateContainer}
             entering={FadeIn.duration(300)}
           >
-            <Calendar size={20} color={COLORS.textLight} />
-            <Text style={styles.dateText}>{formatDate()}</Text>
+            <Calendar size={20} color={colors.textLight} />
+            <Text style={[styles.dateText, { color: colors.textLight }]}>{formatDate()}</Text>
           </Animated.View>
 
           <Animated.View
@@ -522,13 +522,13 @@ export default function AnalyticsScreen() {
             </Text>
             <View style={styles.statRow}>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{filteredOrders.length}</Text>
+                <Text style={[styles.statValue, { color: colors.primary }]}>{filteredOrders.length}</Text>
                 <Text style={[styles.statLabel, { color: colors.textLight }]}>
                   Ordenes totales
                 </Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>
+                <Text style={[styles.statValue, { color: colors.primary }]}>
                   {Object.keys(ordersByGym).length}
                 </Text>
                 <Text style={[styles.statLabel, { color: colors.textLight }]}>
@@ -536,7 +536,7 @@ export default function AnalyticsScreen() {
                 </Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>
+                <Text style={[styles.statValue, { color: colors.primary }]}>
                   {Object.values(productsByType).reduce((a, b) => a + b, 0)}
                 </Text>
                 <Text style={[styles.statLabel, { color: colors.textLight }]}>
@@ -545,7 +545,7 @@ export default function AnalyticsScreen() {
               </View>
             </View>
             <View style={[styles.statItem, { paddingTop: 24 }]}>
-              <Text style={styles.statValue}>${totalPrice.toFixed(2)}</Text>
+              <Text style={[styles.statValue, { color: colors.primary }]}>${totalPrice.toFixed(2)}</Text>
               <Text style={[styles.statLabel, { color: colors.textLight }]}>
                 Total pagado
               </Text>
@@ -631,7 +631,7 @@ export default function AnalyticsScreen() {
                 <View
                   style={[
                     styles.statusBarContainer,
-                    { backgroundColor: colors.white },
+                    { backgroundColor: colors.border },
                   ]}
                 >
                   <View
@@ -639,7 +639,7 @@ export default function AnalyticsScreen() {
                       styles.statusBar,
                       {
                         width: `${(count / filteredOrders.length) * 100}%`,
-                        backgroundColor: getStatusColor(status as OrderStatus),
+                        backgroundColor: getStatusColor(status as OrderStatus, colors),
                       },
                     ]}
                   />
@@ -670,16 +670,16 @@ export default function AnalyticsScreen() {
                 .map(([gym, count], index) => (
                   <Animated.View
                     key={gym}
-                    style={styles.gymStatItem}
+                    style={[styles.gymStatItem, { borderBottomColor: colors.border }]}
                     entering={FadeIn.delay(450 + index * 50)}
                   >
-                    <Text style={[styles.gymRank, { color: colors.text }]}>
+                    <Text style={[styles.gymRank, { color: colors.primary }]}>
                       {index + 1}
                     </Text>
                     <Text style={[styles.gymName, { color: colors.text }]}>
                       {gym}
                     </Text>
-                    <Text style={[styles.gymCount, { color: colors.text }]}>
+                    <Text style={[styles.gymCount, { color: colors.textLight }]}>
                       {count} orden(es)
                     </Text>
                   </Animated.View>
@@ -700,13 +700,13 @@ export default function AnalyticsScreen() {
                 {filteredGastos.map((gasto, index) => (
                   <Animated.View
                     key={gasto.id}
-                    style={styles.gastoItem}
+                    style={[styles.gastoItem, { borderBottomColor: colors.border }]}
                     entering={FadeIn.delay(550 + index * 50)}
                   >
                     <View
                       style={[
                         styles.gastoIndicator,
-                        { backgroundColor: COLORS.warning },
+                        { backgroundColor: colors.warning },
                       ]}
                     />
                     <Text style={[styles.gastoName, { color: colors.text }]}>
@@ -756,24 +756,23 @@ export default function AnalyticsScreen() {
           onPress={handleExport}
           activeOpacity={0.8}
         >
-          <Share2 size={24} color={COLORS.white} />
+          <Share2 size={24} color={colors.onPrimary} />
         </TouchableOpacity>
       </Animated.View>
     </SafeAreaView>
   );
 }
 
-const getStatusColor = (status: OrderStatus): string => {
+const getStatusColor = (status: OrderStatus, colors: ColorSet): string => {
   switch (status) {
     case "Entregado":
-      return COLORS.statusVisto;
+      return colors.statusVisto;
     case "Entregado + P":
-      return COLORS.statusVistoP;
+      return colors.statusVistoP;
     case "Entregado + TRF":
-      return COLORS.statusVistoTRF;
-
+      return colors.statusVistoTRF;
     default:
-      return COLORS.primary;
+      return colors.primary;
   }
 };
 
@@ -842,7 +841,6 @@ const styles = StyleSheet.create({
     padding: SIZES.padding,
   },
   analyticsContainer: {
-    backgroundColor: COLORS.white,
     borderRadius: SIZES.radius,
     padding: SIZES.padding,
     marginBottom: 20,
@@ -854,20 +852,16 @@ const styles = StyleSheet.create({
   },
   dateText: {
     ...FONTS.body2,
-    color: COLORS.textLight,
     marginLeft: 8,
   },
   statsCard: {
-    backgroundColor: COLORS.white,
     borderRadius: SIZES.radius,
     padding: SIZES.padding,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: COLORS.border,
   },
   statsTitle: {
     ...FONTS.h2,
-    color: COLORS.text,
     marginBottom: 16,
   },
   statRow: {
@@ -880,11 +874,9 @@ const styles = StyleSheet.create({
   },
   statValue: {
     ...FONTS.h1,
-    color: COLORS.primary,
   },
   statLabel: {
     ...FONTS.body3,
-    color: COLORS.textLight,
     textAlign: "center",
   },
   productStats: {
@@ -903,19 +895,16 @@ const styles = StyleSheet.create({
   },
   productLabel: {
     ...FONTS.body2,
-    color: COLORS.text,
     flex: 1,
   },
   productValue: {
     ...FONTS.h3,
-    color: COLORS.text,
   },
   statusStatItem: {
     marginBottom: 16,
   },
   statusBarContainer: {
     height: 8,
-    backgroundColor: COLORS.border,
     borderRadius: 4,
     marginBottom: 4,
     overflow: "hidden",
@@ -930,11 +919,9 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     ...FONTS.body3,
-    color: COLORS.text,
   },
   statusValue: {
     ...FONTS.body3,
-    color: COLORS.text,
     fontWeight: "600",
   },
   gymStatItem: {
@@ -942,21 +929,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   gymRank: {
     ...FONTS.h3,
-    color: COLORS.primary,
     width: 30,
   },
   gymName: {
     ...FONTS.body2,
-    color: COLORS.text,
     flex: 1,
   },
   gymCount: {
     ...FONTS.body3,
-    color: COLORS.textLight,
   },
   // Gastos styles
   gastoItem: {
@@ -964,7 +947,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   gastoIndicator: {
     width: 12,

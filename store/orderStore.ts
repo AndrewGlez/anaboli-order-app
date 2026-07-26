@@ -1,10 +1,18 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { OrderStore } from "@/types";
+import { OrderStore, Order, RawPersistedOrder, LegacyOrder, FlavorCode } from "@/types";
 import { useInventoryStore } from "./inventoryStore";
+import { isValidFlavor, assertFlavor, FLAVOR_CODES } from "@/constants/productionCatalog";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
+
+// Extended store interface with flavor validation
+export interface ExtendedOrderStore extends OrderStore {
+  hydrateOrder: (raw: RawPersistedOrder) => Order | LegacyOrder;
+  validateFlavor: (flavor: unknown) => FlavorCode;
+  fixOrderFlavor: (id: string, flavor: FlavorCode) => { ok: true } | { ok: false; reason: string };
+}
 
 export const useOrderStore = create<OrderStore>()(
   persist(
@@ -160,6 +168,31 @@ export const useOrderStore = create<OrderStore>()(
                   "Formato de pedidos inválido. Faltan campos requeridos.",
               };
             }
+
+            // Validate flavor - must be a valid FlavorCode
+            if (!isValidFlavor(order.flavor)) {
+              return {
+                success: false,
+                message: `Flavor inválido para el pedido ${order.id}: '${order.flavor}'. Debe ser uno de: ${FLAVOR_CODES.join(", ")}`,
+              };
+            }
+
+            // Validate products - each product must have valid type and quantity
+            for (const product of order.products) {
+              const validTypes = ["A", "GNY", "C", "K"];
+              if (!validTypes.includes(product.type)) {
+                return {
+                  success: false,
+                  message: `Tipo de producto inválido para el pedido ${order.id}: '${product.type}'. Debe ser uno de: ${validTypes.join(", ")}`,
+                };
+              }
+              if (typeof product.quantity !== "number" || product.quantity < 0 || !Number.isInteger(product.quantity)) {
+                return {
+                  success: false,
+                  message: `Cantidad inválida para el pedido ${order.id}: '${product.quantity}'. Debe ser un entero no negativo.`,
+                };
+              }
+            }
           }
 
           // Import the orders using a state update function to ensure reactivity
@@ -217,6 +250,55 @@ export const useOrderStore = create<OrderStore>()(
             success: false,
             message: `Error al exportar: ${error.message}`,
           };
+        }
+      },
+
+      // Hydration: converts raw persisted order to Order or LegacyOrder
+      hydrateOrder: (raw: RawPersistedOrder): Order | LegacyOrder => {
+        // Check if flavor exists and is valid
+        if (!raw.flavor || !isValidFlavor(raw.flavor)) {
+          // Destructure to exclude the flavor property
+          const { flavor: _flavor, ...orderWithoutFlavor } = raw;
+          const legacyOrder: LegacyOrder = {
+            order: orderWithoutFlavor as Omit<Order, "flavor">,
+            legacyFlavor: raw.flavor,
+            legacyReason: raw.flavor === null || raw.flavor === undefined || raw.flavor === "" ? "missing" : "invalid",
+          };
+          return legacyOrder;
+        }
+
+        // Valid order with flavor
+        const order: Order = {
+          ...raw,
+          flavor: raw.flavor as FlavorCode,
+        };
+        return order;
+      },
+
+      // Validate flavor and return FlavorCode or throw
+      validateFlavor: (flavor: unknown): FlavorCode => {
+        return assertFlavor(flavor);
+      },
+
+      // Fix an order's flavor (migrate legacy order to valid order)
+      fixOrderFlavor: (id: string, flavor: FlavorCode): { ok: true } | { ok: false; reason: string } => {
+        try {
+          const state = get();
+          const existingOrder = state.orders.find((o) => o.id === id);
+          if (!existingOrder) return { ok: false, reason: "Order not found" };
+
+          // Update the order with the new valid flavor
+          set((s) => ({
+            orders: s.orders.map((order) =>
+              order.id === id
+                ? { ...order, flavor, updatedAt: new Date().toISOString() }
+                : order
+            ),
+            lastUpdated: Date.now(),
+          }));
+          return { ok: true };
+        } catch (error) {
+          return { ok: false, reason: String(error) };
         }
       },
     }),

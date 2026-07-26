@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { ArrowLeft, Plus, Trash2, PlusCircle } from "lucide-react-native";
 import { COLORS, FONTS, SIZES } from "@/constants/theme";
-import { Order, OrderStatus, ProductType, Gasto } from "@/types";
+import { Order, OrderStatus, ProductType, Gasto, FlavorCode } from "@/types";
+import { FLAVOR_CODES } from "@/constants/productionCatalog";
 import StatusSelector from "./StatusSelector";
 import ProductSelector from "./ProductSelector";
 import { useThemeStore } from "@/store/themeStore";
@@ -40,6 +41,8 @@ export default function OrderDetails({
   const [products, setProducts] = useState([...order.products]);
   const [notes, setNotes] = useState(order.notes || "");
   const [price, setPrice] = useState(order.price?.toString() || "");
+  const [flavor, setFlavor] = useState<FlavorCode | null>(order.flavor || null);
+  const [flavorError, setFlavorError] = useState<string | null>(null);
 
   // Local gastos state for new gastos being added during edit
   const [newGastos, setNewGastos] = useState<
@@ -92,6 +95,12 @@ export default function OrderDetails({
   };
 
   const handleSave = () => {
+    // Validate flavor
+    if (!flavor || !FLAVOR_CODES.includes(flavor)) {
+      setFlavorError("Por favor selecciona un sabor válido");
+      return;
+    }
+
     // Save new gastos
     newGastos.forEach((gasto) => {
       if (gasto.name.trim() && gasto.price) {
@@ -111,6 +120,7 @@ export default function OrderDetails({
       products,
       notes,
       price: parseFloat(price),
+      flavor,
       updatedAt: new Date().toISOString(),
     });
   };
@@ -174,7 +184,7 @@ export default function OrderDetails({
           )}
         </View>
 
-        <View style={styles.section}>
+         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.textLight }]}>
             Estado
           </Text>
@@ -192,6 +202,57 @@ export default function OrderDetails({
                 {order.status}
               </Text>
             </View>
+          )}
+        </View>
+
+        {/* Flavor Section - Mandatory for editing */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: colors.textLight }]}>
+            Sabor *
+          </Text>
+          {isEditing ? (
+            <View>
+              <View style={styles.flavorSelector}>
+                {FLAVOR_CODES.map((flavorCode) => (
+                  <TouchableOpacity
+                    key={flavorCode}
+                    style={[
+                      styles.flavorOption,
+                      {
+                        borderColor: colors.border,
+                        backgroundColor:
+                          flavor === flavorCode
+                            ? colors.primary
+                            : colors.background,
+                      },
+                    ]}
+                    onPress={() => {
+                      setFlavor(flavorCode as FlavorCode);
+                      setFlavorError(null);
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color:
+                          flavor === flavorCode ? colors.white : colors.text,
+                        ...FONTS.body3,
+                      }}
+                    >
+                      {flavorCode}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {flavorError && (
+                <Text style={[styles.errorText, { color: colors.error }]}>
+                  {flavorError}
+                </Text>
+              )}
+            </View>
+          ) : (
+            <Text style={[styles.sectionContent, { color: colors.text }]}>
+              {order.flavor || "Sin sabor"}
+            </Text>
           )}
         </View>
 
@@ -742,5 +803,24 @@ const styles = StyleSheet.create({
   gastosTotalValue: {
     ...FONTS.h3,
     fontWeight: "600",
+  } as TextStyle,
+  // Flavor selector styles
+  flavorSelector: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 8,
+  } as ViewStyle,
+  flavorOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    marginRight: 8,
+    marginBottom: 8,
+  } as ViewStyle,
+  errorText: {
+    ...FONTS.body3,
+    marginTop: 8,
   } as TextStyle,
 });

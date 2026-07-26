@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Switch,
   TouchableOpacity,
   ScrollView,
   TextInput,
@@ -16,14 +15,14 @@ import {
   Download,
   Upload,
   Bell,
-  Moon,
   Copy,
   Share2,
   ClipboardCheck,
 } from "lucide-react-native";
-import { COLORS, FONTS, SIZES } from "@/constants/theme";
+import { FONTS, SIZES } from "@/constants/theme";
 import { useOrderStore } from "@/store/orderStore";
 import { useThemeStore } from "@/store/themeStore";
+import { ThemeModeSelector } from "@/components/ThemeModeSelector";
 import Constants from "expo-constants";
 import { Linking } from "react-native";
 import { copyToClipboard, readFromClipboard } from "@/services/web/clipboard";
@@ -36,11 +35,9 @@ export default function SettingsScreen() {
     importOrdersFromJSON,
     exportOrdersToShare,
   } = useOrderStore();
-  const { theme, toggleTheme } = useThemeStore();
+  const { mode, setMode, resolvedColors: colors } = useThemeStore();
   const [importModalVisible, setImportModalVisible] = useState(false);
   const [importText, setImportText] = useState("");
-
-  const colors = COLORS.themed(theme);
 
   const handleClearData = () => {
     showAlert(
@@ -128,25 +125,7 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Apariencia
           </Text>
-          <View
-            style={[
-              styles.settingItem,
-              { backgroundColor: colors.white, borderColor: colors.border },
-            ]}
-          >
-            <View style={styles.settingLabelContainer}>
-              <Moon size={20} color={colors.text} style={styles.settingIcon} />
-              <Text style={[styles.settingLabel, { color: colors.text }]}>
-                Modo oscuro
-              </Text>
-            </View>
-            <Switch
-              value={theme === "dark"}
-              onValueChange={toggleTheme}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={COLORS.white}
-            />
-          </View>
+          <ThemeModeSelector mode={mode} onModeChange={setMode} colors={colors} />
         </View>
 
         <View style={styles.section}>
@@ -284,8 +263,8 @@ export default function SettingsScreen() {
                 ]}
                 onPress={handlePasteFromClipboard}
               >
-                <ClipboardCheck size={18} color={COLORS.white} />
-                <Text style={styles.pasteButtonText}>Pegar</Text>
+                <ClipboardCheck size={18} color={colors.onPrimary} />
+                <Text style={[styles.pasteButtonText, { color: colors.onPrimary }]}>Pegar</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.modalButtons}>
@@ -307,7 +286,7 @@ export default function SettingsScreen() {
                 ]}
                 onPress={handleImportSubmit}
               >
-                <Text style={[styles.buttonText, { color: COLORS.white }]}>
+                <Text style={[styles.buttonText, { color: colors.onPrimary }]}>
                   Importar
                 </Text>
               </TouchableOpacity>
@@ -334,25 +313,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...FONTS.h2,
     marginBottom: 16,
-  },
-  settingItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: SIZES.radius,
-    marginBottom: 8,
-    borderWidth: 1,
-  },
-  settingLabelContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  settingIcon: {
-    marginRight: 12,
-  },
-  settingLabel: {
-    ...FONTS.body2,
   },
   dataButton: {
     flexDirection: "row",
@@ -438,7 +398,6 @@ const styles = StyleSheet.create({
   },
   pasteButtonText: {
     ...FONTS.body3,
-    color: COLORS.white,
     marginLeft: 6,
   },
   modalButtons: {

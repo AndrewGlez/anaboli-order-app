@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { COLORS } from '@/constants/theme';
+import { type ColorSet } from '@/constants/theme';
 import { useThemeStore } from '@/store/themeStore';
 import { TAB_ITEMS } from './tabConfig';
 
@@ -11,13 +11,12 @@ interface DesktopSidebarProps {
 
 export function DesktopSidebar({ activeHref }: DesktopSidebarProps) {
   const router = useRouter();
-  const { theme } = useThemeStore();
-  const colors = COLORS.themed(theme);
+  const colors = useThemeStore((state) => state.resolvedColors);
 
   return (
-    <View style={[styles.sidebar, { backgroundColor: colors.background, borderRightColor: colors.border }]}>
-      <View style={styles.header}>
-        <Text style={[styles.appName, { color: colors.primary }]}>Order App</Text>
+    <View style={[styles.sidebar, { backgroundColor: colors.sidebar, borderRightColor: colors.sidebarBorder }]}>
+      <View style={[styles.header, { borderBottomColor: colors.sidebarBorder }]}>
+        <Text style={[styles.appName, { color: colors.sidebarTitle }]}>Anaboli</Text>
       </View>
       <View style={styles.nav}>
         {TAB_ITEMS.map((item) => {
@@ -40,7 +39,7 @@ export function DesktopSidebar({ activeHref }: DesktopSidebarProps) {
 function SidebarItem({ item, isActive, colors, onPress }: {
   item: typeof TAB_ITEMS[number];
   isActive: boolean;
-  colors: ReturnType<typeof COLORS.themed>;
+  colors: ColorSet;
   onPress: () => void;
 }) {
   const [focused, setFocused] = useState(false);
@@ -49,7 +48,7 @@ function SidebarItem({ item, isActive, colors, onPress }: {
     <Pressable
       style={({ pressed }) => [
         styles.navItem,
-        isActive && { backgroundColor: colors.primary + '10' },
+        isActive && { backgroundColor: colors.primary + '14' },
         pressed && styles.pressed,
       ]}
       onPress={onPress}
@@ -59,15 +58,15 @@ function SidebarItem({ item, isActive, colors, onPress }: {
       accessibilityState={{ selected: isActive }}
       accessibilityLabel={isActive ? `${item.title} - current page` : item.title}
     >
-      {focused && <View style={styles.focusIndicator} />}
+      {focused && <View style={[styles.focusIndicator, { backgroundColor: colors.primary }]} />}
       <item.icon
         size={20}
-        color={isActive ? colors.primary : colors.textLight}
+        color={isActive ? colors.sidebarActiveText : colors.sidebarText}
       />
       <Text
         style={[
           styles.navLabel,
-          { color: isActive ? colors.primary : colors.textLight },
+          { color: isActive ? colors.sidebarActiveText : colors.sidebarText },
           isActive && styles.activeLabel,
         ]}
       >
@@ -87,11 +86,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   appName: {
     fontFamily: 'Montserrat_700Bold',
-    fontSize: 20,
+    fontSize: 22,
+    letterSpacing: -0.5,
   },
   nav: {
     paddingTop: 8,
@@ -119,6 +118,5 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 3,
-    backgroundColor: COLORS.primary,
   },
 });
