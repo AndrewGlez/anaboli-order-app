@@ -29,10 +29,9 @@ describe('TabletTopNav', () => {
       <TabletTopNav activeHref="/" />
     );
     const json = JSON.stringify(component.toJSON());
-    // Check that all 4 tab titles are present
-    expect(json).toContain('Ordenes');
-    expect(json).toContain('Nuevo');
-    expect(json).toContain('Análisis');
+    // Check that all 3 tab titles are present
+    expect(json).toContain('Inventario');
+    expect(json).toContain('Producción');
     expect(json).toContain('Ajustes');
   });
 });
