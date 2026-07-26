@@ -659,10 +659,13 @@ const styles = StyleSheet.create({
     minHeight: 0,
   },
   webContent: {
-    // RN Web needs an explicit constrained flex item for overflow scrolling.
-    height: 0,
+    // RN Web can resolve the flex chain to the content height. Use an explicit
+    // viewport height so this element, rather than the body, owns scrolling.
+    height: "calc(100vh - 80px)",
+    flexGrow: 0,
+    flexShrink: 1,
     overflow: "scroll",
-  },
+  } as unknown as ViewStyle,
   contentContainer: {
     padding: SIZES.padding,
     flexGrow: Platform.OS === 'web' ? undefined : 1,
