@@ -53,9 +53,24 @@ function useServiceWorkerRegistration() {
   }, []);
 }
 
+function useWebAppManifest() {
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    let manifestLink = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    if (!manifestLink) {
+      manifestLink = document.createElement('link');
+      manifestLink.rel = 'manifest';
+      document.head.appendChild(manifestLink);
+    }
+    manifestLink.href = '/manifest.json';
+  }, []);
+}
+
 export default function RootLayout() {
   useFrameworkReady();
   useServiceWorkerRegistration();
+  useWebAppManifest();
   const colorScheme = useColorScheme();
   const setSystemTheme = useThemeStore((s) => s.setSystemTheme);
   const rnSystemScheme = useRNColorScheme();

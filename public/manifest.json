@@ -1,11 +1,11 @@
 {
   "name": "Order App",
   "short_name": "Order App",
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#0a7d4b",
   "background_color": "#ffffff",
-  "scope": "./",
+  "scope": "/",
   "icons": [
     {
       "src": "./icons/icon-192.png",
