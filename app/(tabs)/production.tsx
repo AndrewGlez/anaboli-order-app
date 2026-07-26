@@ -294,7 +294,7 @@ export default function ProductionScreen() {
   };
 
   const webHeightStyle = Platform.OS === "web"
-    ? ({ height: "100vh" } as unknown as ViewStyle)
+    ? ({ height: "100vh", overflow: "hidden" } as unknown as ViewStyle)
     : null;
 
   return (
@@ -349,7 +349,7 @@ export default function ProductionScreen() {
 
       <ScrollView
         ref={scrollViewRef}
-        style={styles.content}
+        style={[styles.content, Platform.OS === "web" && styles.webContent]}
         contentContainerStyle={styles.contentContainer}
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -657,6 +657,11 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     minHeight: 0,
+  },
+  webContent: {
+    // RN Web needs an explicit constrained flex item for overflow scrolling.
+    height: 0,
+    overflow: "scroll",
   },
   contentContainer: {
     padding: SIZES.padding,
