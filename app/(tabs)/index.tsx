@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -23,14 +22,6 @@ import { useThemeStore } from "@/store/themeStore";
 import UpdateButton from "@/components/UpdateButton";
 
 export default function OrdersScreen() {
-  // Pivot to inventory-only: this file is preserved (Orders screen body intact
-  // for recoverability) but never rendered. Redirect to /production on mount.
-  const router = useRouter();
-  useEffect(() => {
-    router.replace("/production");
-  }, [router]);
-  return null;
-
   const { orders } = useOrderStore();
   const { theme } = useThemeStore();
   const colors = COLORS.themed(theme);

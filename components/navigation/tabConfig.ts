@@ -1,23 +1,47 @@
-import { Settings, Package } from "lucide-react-native";
+import {
+	Clipboard,
+	BarChart4,
+	Settings,
+	PlusCircle,
+	Package,
+} from "lucide-react-native";
 
 export interface TabItem {
 	name: string;
 	href: string;
 	title: string;
-	icon: typeof Settings;
+	icon: typeof Clipboard;
 }
 
 export const TAB_ITEMS: TabItem[] = [
 	{
-		name: "inventory",
-		href: "/inventory",
-		title: "Inventario",
-		icon: Package,
+		name: "index",
+		href: "/",
+		title: "Ordenes",
+		icon: Clipboard,
+	},
+	{
+		name: "new-order",
+		href: "/new-order",
+		title: "Nuevo",
+		icon: PlusCircle,
 	},
 	{
 		name: "production",
 		href: "/production",
 		title: "Producción",
+		icon: Package,
+	},
+	{
+		name: "analytics",
+		href: "/analytics",
+		title: "Análisis",
+		icon: BarChart4,
+	},
+	{
+		name: "inventory",
+		href: "/inventory",
+		title: "Inventario",
 		icon: Package,
 	},
 	{

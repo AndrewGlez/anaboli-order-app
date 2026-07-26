@@ -14,10 +14,12 @@ export default function TabLayout() {
 
   // Map pathname to active href
   const getActiveHref = () => {
+    if (pathname.includes("/new-order")) return "/new-order";
     if (pathname.includes("/production")) return "/production";
+    if (pathname.includes("/analytics")) return "/analytics";
     if (pathname.includes("/inventory")) return "/inventory";
     if (pathname.includes("/settings")) return "/settings";
-    return "/production";
+    return "/";
   };
 
   // Desktop: sidebar layout. Use the headless Tabs from expo-router/ui so no
@@ -33,8 +35,11 @@ export default function TabLayout() {
             </View>
           </View>
           <TabList>
-            <TabTrigger name="inventory" href="/inventory" />
+            <TabTrigger name="index" href="/" />
+            <TabTrigger name="new-order" href="/new-order" />
             <TabTrigger name="production" href="/production" />
+            <TabTrigger name="analytics" href="/analytics" />
+            <TabTrigger name="inventory" href="/inventory" />
             <TabTrigger name="settings" href="/settings" />
           </TabList>
         </View>
@@ -54,8 +59,11 @@ export default function TabLayout() {
             </View>
           </View>
           <TabList>
-            <TabTrigger name="inventory" href="/inventory" />
+            <TabTrigger name="index" href="/" />
+            <TabTrigger name="new-order" href="/new-order" />
             <TabTrigger name="production" href="/production" />
+            <TabTrigger name="analytics" href="/analytics" />
+            <TabTrigger name="inventory" href="/inventory" />
             <TabTrigger name="settings" href="/settings" />
           </TabList>
         </View>

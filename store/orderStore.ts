@@ -304,7 +304,6 @@ export const useOrderStore = create<OrderStore>()(
     }),
     {
       name: "orders-storage",
-      version: 1,
       storage: createJSONStorage(() => AsyncStorage),
     }
   )
