@@ -23,7 +23,7 @@ describe("productionNavigation", () => {
     });
 
     it("preserves existing routes", () => {
-      const existingRoutes = ["/production", "/inventory", "/settings"];
+      const existingRoutes = ["/", "/new-order", "/analytics", "/inventory", "/settings"];
       existingRoutes.forEach((href) => {
         const tab = TAB_ITEMS.find((item) => item.href === href);
         expect(tab).toBeDefined();
@@ -32,7 +32,14 @@ describe("productionNavigation", () => {
 
     it("has correct order of tabs", () => {
       const hrefs = TAB_ITEMS.map((item) => item.href);
-      expect(hrefs).toEqual(["/inventory", "/production", "/settings"]);
+      expect(hrefs).toEqual([
+        "/",
+        "/new-order",
+        "/production",
+        "/analytics",
+        "/inventory",
+        "/settings",
+      ]);
     });
   });
 });

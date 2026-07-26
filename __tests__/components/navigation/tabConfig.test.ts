@@ -1,8 +1,8 @@
 import { TAB_ITEMS } from "../../../components/navigation/tabConfig";
 
 describe("tabConfig", () => {
-	it("has 3 tab items", () => {
-		expect(TAB_ITEMS).toHaveLength(3);
+	it("has 6 tab items", () => {
+		expect(TAB_ITEMS).toHaveLength(6);
 	});
 
 	it("each item has required fields", () => {
@@ -15,14 +15,20 @@ describe("tabConfig", () => {
 	});
 
 	it("has correct tab names", () => {
-		expect(TAB_ITEMS[0].name).toBe("inventory");
-		expect(TAB_ITEMS[1].name).toBe("production");
-		expect(TAB_ITEMS[2].name).toBe("settings");
+		expect(TAB_ITEMS[0].name).toBe("index");
+		expect(TAB_ITEMS[1].name).toBe("new-order");
+		expect(TAB_ITEMS[2].name).toBe("production");
+		expect(TAB_ITEMS[3].name).toBe("analytics");
+		expect(TAB_ITEMS[4].name).toBe("inventory");
+		expect(TAB_ITEMS[5].name).toBe("settings");
 	});
 
 	it("has correct tab titles", () => {
-		expect(TAB_ITEMS[0].title).toBe("Inventario");
-		expect(TAB_ITEMS[1].title).toBe("Producción");
-		expect(TAB_ITEMS[2].title).toBe("Ajustes");
+		expect(TAB_ITEMS[0].title).toBe("Ordenes");
+		expect(TAB_ITEMS[1].title).toBe("Nuevo");
+		expect(TAB_ITEMS[2].title).toBe("Producción");
+		expect(TAB_ITEMS[3].title).toBe("Análisis");
+		expect(TAB_ITEMS[4].title).toBe("Inventario");
+		expect(TAB_ITEMS[5].title).toBe("Ajustes");
 	});
 });

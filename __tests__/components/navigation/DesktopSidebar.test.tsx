@@ -27,8 +27,11 @@ describe("DesktopSidebar", () => {
 		const json = JSON.stringify(component.toJSON());
 		// Check that app name and all tab titles are present
 		expect(json).toContain("Anaboli");
-		expect(json).toContain("Inventario");
+		expect(json).toContain("Ordenes");
+		expect(json).toContain("Nuevo");
 		expect(json).toContain("Producción");
+		expect(json).toContain("Análisis");
+		expect(json).toContain("Inventario");
 		expect(json).toContain("Ajustes");
 	});
 });
