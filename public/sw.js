@@ -14,10 +14,35 @@ const PRECACHE_URLS = [
   '/icons/icon-512.png',
 ];
 
+// Resolve any precache path against the SW origin so addAll always uses
+// absolute URLs. Relative paths can confuse the Cache API when the SW is
+// served from a sub-path, and a single failed fetch aborts the whole addAll.
+const toAbsoluteURL = (path) => new URL(path, self.location.origin).href;
+
 // Install: precache shell assets (no skipWaiting — wait for client message)
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+    caches
+      .open(CACHE_NAME)
+      .then((cache) =>
+        Promise.all(
+          PRECACHE_URLS.map((url) =>
+            fetch(toAbsoluteURL(url), { cache: 'reload' })
+              .then((response) => {
+                if (response.ok) {
+                  return cache.put(toAbsoluteURL(url), response);
+                }
+                console.warn('[sw] skipping precache for non-ok response', url, response.status);
+                return null;
+              })
+              .catch((err) => {
+                console.warn('[sw] precache failed for', url, err);
+                return null;
+              }),
+          ),
+        ),
+      )
+      .then(() => self.skipWaiting()),
   );
 });
 
