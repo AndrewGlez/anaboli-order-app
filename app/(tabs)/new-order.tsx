@@ -101,17 +101,26 @@ export default function NewOrderScreen() {
   };
 
   const handleSubmit = () => {
+    console.debug("[order:create] submit started", {
+      hasGymName: Boolean(gymName.trim()),
+      productCount: products.length,
+      hasFlavor: Boolean(flavor),
+    });
+
     if (!gymName.trim()) {
+      console.debug("[order:create] validation failed: missing gym name");
       Alert.alert("Error", "Por favor ingresa el nombre del gimnasio");
       return;
     }
 
     if (products.length === 0) {
+      console.debug("[order:create] validation failed: no products");
       Alert.alert("Error", "Por favor agrega al menos un producto");
       return;
     }
 
     if (!flavor) {
+      console.debug("[order:create] validation failed: missing flavor");
       Alert.alert("Error", "Por favor selecciona un sabor");
       setFlavorError("El sabor es obligatorio");
       return;
@@ -129,9 +138,21 @@ export default function NewOrderScreen() {
       updatedAt: new Date().toISOString(),
     };
 
+    console.debug("[order:create] submitting order", {
+      orderId: newOrder.id,
+      productTypes: products.map((product) => product.type),
+      productCount: products.length,
+      flavor: newOrder.flavor,
+    });
+
     const result = addOrder(newOrder);
 
     if (!result.ok) {
+      console.warn("[order:create] rejected by store", {
+        orderId: newOrder.id,
+        reason: result.reason,
+        shortfall: result.shortfall,
+      });
       if (result.reason === "insufficient_stock") {
         const shortfall = result.shortfall
           ? Object.entries(result.shortfall)
@@ -147,6 +168,8 @@ export default function NewOrderScreen() {
       }
       return;
     }
+
+    console.debug("[order:create] order persisted", { orderId: newOrder.id });
 
     // Save gastos
     gastos.forEach((gasto) => {
@@ -172,6 +195,7 @@ export default function NewOrderScreen() {
     setGastos([]);
 
     // Navigate back to orders
+    console.debug("[order:create] navigating to orders", { orderId: newOrder.id });
     router.push("/");
   };
 
