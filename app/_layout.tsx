@@ -9,6 +9,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useThemeStore } from '@/store/themeStore';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { UpdateToast } from '@/components/UpdateToast';
+import { Toaster } from 'sonner';
 
 if (Platform.OS === 'web') {
   require('@/web/styles.css');
@@ -96,6 +97,7 @@ export default function RootLayout() {
         <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
       </Stack>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      {Platform.OS === 'web' && <Toaster position="top-right" richColors />}
     </>
   );
 }

@@ -30,6 +30,7 @@ import { FLAVOR_CODES } from "@/constants/productionCatalog";
 import ProductSelector from "@/components/ProductSelector";
 import StatusSelector from "@/components/StatusSelector";
 import { useThemeStore } from "@/store/themeStore";
+import { toast } from "sonner";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -57,6 +58,9 @@ export default function NewOrderScreen() {
 
   const handleAddProduct = () => {
     setProducts([...products, { type: "A", quantity: 1 }]);
+    toast.success("Producto agregado", {
+      description: "Selecciona el tipo y la cantidad del producto.",
+    });
   };
 
   const handleUpdateProduct = (
