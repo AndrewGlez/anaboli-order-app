@@ -110,7 +110,10 @@ export default function OrderCard({ order, index = 0, onFix, isLegacy, legacyRea
           </Text>
           <View style={styles.headerRight}>
             {isLegacy && (
-              <View style={[styles.legacyBadge, { backgroundColor: colors.warning + "20" }]}>
+              <View
+                style={[styles.legacyBadge, { backgroundColor: colors.warning + "20" }]}
+                accessibilityLabel="Datos legacy"
+              >
                 <Text style={[styles.legacyBadgeText, { color: colors.warning }]}>
                   Datos legacy
                 </Text>

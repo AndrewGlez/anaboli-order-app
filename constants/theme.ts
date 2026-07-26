@@ -1,7 +1,9 @@
+export type ResolvedTheme = "light" | "dark";
+
 export const LIGHT_COLORS = {
-  primary: "#4361ee",
-  secondary: "#3f37c9",
-  accent: "#f72585",
+  primary: "#22c55e",
+  secondary: "#16a34a",
+  accent: "#10b981",
 
   success: "#4ade80",
   warning: "#fbbf24",
@@ -13,6 +15,14 @@ export const LIGHT_COLORS = {
   background: "#f8fafc",
   white: "#ffffff",
   border: "#e2e8f0",
+  onPrimary: "#ffffff",
+
+  // Sidebar (reference design: black sidebar, theme-independent)
+  sidebar: "#0f0f0f",
+  sidebarBorder: "#262626",
+  sidebarText: "#a3a3a3",
+  sidebarActiveText: "#4ade80",
+  sidebarTitle: "#f8fafc",
 
   // Product colors
   productA: "#4361ee", // Avena - Blue
@@ -30,9 +40,9 @@ export const LIGHT_COLORS = {
 };
 
 export const DARK_COLORS = {
-  primary: "#4361ee",
-  secondary: "#3f37c9",
-  accent: "#f72585",
+  primary: "#22c55e",
+  secondary: "#16a34a",
+  accent: "#10b981",
 
   success: "#4ade80",
   warning: "#fbbf24",
@@ -44,6 +54,14 @@ export const DARK_COLORS = {
   background: "#0f172a",
   white: "#1e293b",
   border: "#334155",
+  onPrimary: "#ffffff",
+
+  // Sidebar (reference design: black sidebar, theme-independent)
+  sidebar: "#0f0f0f",
+  sidebarBorder: "#262626",
+  sidebarText: "#a3a3a3",
+  sidebarActiveText: "#4ade80",
+  sidebarTitle: "#f8fafc",
 
   // Product colors remain the same for consistency
   productA: "#4361ee",
@@ -60,10 +78,12 @@ export const DARK_COLORS = {
   statusVistoTRFSP: "#8b5cf6",
 };
 
+export type ColorSet = typeof LIGHT_COLORS;
+
 // Dynamic colors based on theme
 export const COLORS = {
   ...LIGHT_COLORS,
-  themed: (theme: "light" | "dark") => {
+  themed: (theme: ResolvedTheme): ColorSet => {
     return theme === "light" ? LIGHT_COLORS : DARK_COLORS;
   },
 };

@@ -88,7 +88,10 @@ export function VersionHistory({
       </View>
 
       {readOnlyMessage && (
-        <View style={[styles.readOnlyBanner, { backgroundColor: colors.warning + "20" }]}>
+        <View
+          style={[styles.readOnlyBanner, { backgroundColor: colors.warning + "20" }]}
+          accessibilityLabel={readOnlyMessage}
+        >
           <Text style={[styles.readOnlyText, { color: colors.warning }]} >
             {readOnlyMessage}
           </Text>

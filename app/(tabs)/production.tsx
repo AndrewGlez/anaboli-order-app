@@ -7,15 +7,19 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Platform,
+  type ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, Printer, Share2, Save, ChevronLeft, ChevronRight } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { COLORS, FONTS, SIZES } from "@/constants/theme";
+import { FONTS, SIZES, type ColorSet } from "@/constants/theme";
 import { useThemeStore } from "@/store/themeStore";
+import { ReconciliationPanel } from "@/components/production/ReconciliationPanel";
 import { useOrderStore } from "@/store/orderStore";
 import { useProductionStore } from "@/store/productionStore";
 import { FLAVOR_CODES, PRODUCTION_PRODUCT_TYPES } from "@/constants/productionCatalog";
+import { PRODUCT_LABELS } from "@/components/production/mobileProductionLayout";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { canPrint, printReport } from "@/services/web/productionPrint";
 import { canExport, exportReport } from "@/services/productionExport";
@@ -23,15 +27,17 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { SectionNavigation } from "@/components/production/SectionNavigation";
 import { VersionHistory } from "@/components/production/VersionHistory";
 import { LegacyFixList } from "@/components/production/LegacyFixList";
+import { DistributionSummary } from "@/components/production/DistributionSummary";
+import { MobileProductionTable } from "@/components/production/MobileProductionTable";
 import { isLegacyOrder, makeEligibleForReconciliation } from "@/components/production/legacyFixes";
 import { VersionInfo } from "@/components/production/versionHistory";
+import { selectDistributionSummary } from "@/services/productionSelectors";
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function ProductionScreen() {
   const router = useRouter();
-  const { theme } = useThemeStore();
-  const colors = COLORS.themed(theme);
+  const colors = useThemeStore((state) => state.resolvedColors);
   const breakpoint = useBreakpoint();
   const isMobile = breakpoint === "phone";
   const scrollViewRef = useRef<ScrollView>(null);
@@ -122,6 +128,13 @@ export default function ProductionScreen() {
     };
   }, [quantities, ordersForDate]);
 
+  // Distribution summary: aggregate assigned quantities per customer with share %.
+  // Pure derivation over ordersForDate; does not touch store/reconciliation/history.
+  const distributionSummary = useMemo(
+    () => selectDistributionSummary(ordersForDate),
+    [ordersForDate]
+  );
+
   // Handle quantity change
   const handleQuantityChange = (flavor: string, product: string, value: string) => {
     // Allow empty string during editing (user might be clearing input)
@@ -207,8 +220,9 @@ export default function ProductionScreen() {
       "summary": 200,
       "production-table": 400,
       "customer-distribution": 900,
-      "version-history": 1300,
-      "legacy-fixes": 1600,
+      "distribution-summary": 1150,
+      "version-history": 1450,
+      "legacy-fixes": 1750,
     };
     scrollViewRef.current?.scrollTo({ y: sectionOffsets[sectionId] || 0, animated: true });
   }, []);
@@ -222,7 +236,8 @@ export default function ProductionScreen() {
     else if (y < 300) setActiveSectionId("summary");
     else if (y < 700) setActiveSectionId("production-table");
     else if (y < 1000) setActiveSectionId("customer-distribution");
-    else if (y < 1400) setActiveSectionId("version-history");
+    else if (y < 1300) setActiveSectionId("distribution-summary");
+    else if (y < 1600) setActiveSectionId("version-history");
     else setActiveSectionId("legacy-fixes");
   }, []);
 
@@ -278,8 +293,18 @@ export default function ProductionScreen() {
     });
   };
 
+  const webHeightStyle = Platform.OS === "web"
+    ? ({ height: "100vh" } as unknown as ViewStyle)
+    : null;
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: colors.background },
+        webHeightStyle,
+      ]}
+    >
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Text style={[styles.title, { color: colors.text }]}>Producción Diaria</Text>
@@ -288,6 +313,7 @@ export default function ProductionScreen() {
             <TouchableOpacity
               style={[styles.iconButton, { backgroundColor: colors.primary + "20" }]}
               onPress={handlePrint}
+              accessibilityLabel="Imprimir"
             >
               <Printer size={20} color={colors.primary} />
             </TouchableOpacity>
@@ -296,6 +322,7 @@ export default function ProductionScreen() {
             <TouchableOpacity
               style={[styles.iconButton, { backgroundColor: colors.primary + "20" }]}
               onPress={handleExport}
+              accessibilityLabel="Exportar"
             >
               <Share2 size={20} color={colors.primary} />
             </TouchableOpacity>
@@ -320,6 +347,7 @@ export default function ProductionScreen() {
       <ScrollView
         ref={scrollViewRef}
         style={styles.content}
+        contentContainerStyle={styles.contentContainer}
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
@@ -331,6 +359,7 @@ export default function ProductionScreen() {
           <TouchableOpacity
             style={styles.dateNavButton}
             onPress={() => changeDate(-1)}
+            accessibilityLabel="Día anterior"
           >
             <ChevronLeft size={24} color={colors.primary} />
           </TouchableOpacity>
@@ -345,100 +374,100 @@ export default function ProductionScreen() {
           <TouchableOpacity
             style={styles.dateNavButton}
             onPress={() => changeDate(1)}
+            accessibilityLabel="Día siguiente"
           >
             <ChevronRight size={24} color={colors.primary} />
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Summary Cards */}
-        <View style={styles.summaryCards}>
-          <View style={[styles.summaryCard, { backgroundColor: colors.white }]}>
-            <Text style={[styles.summaryLabel, { color: colors.textLight }]}>Producido</Text>
-            <Text style={[styles.summaryValue, { color: colors.text }]}>{totalProduced}</Text>
-          </View>
-
-          <View style={[styles.summaryCard, { backgroundColor: colors.white }]}>
-            <Text style={[styles.summaryLabel, { color: colors.textLight }]}>Asignado</Text>
-            <Text style={[styles.summaryValue, { color: colors.text }]}>{totalAssigned}</Text>
-          </View>
-
-          <View
-            style={[
-              styles.summaryCard,
-              {
-                backgroundColor: isBalanced ? colors.success + "20" : colors.error + "20",
-              },
-            ]}
-          >
-            <Text style={[styles.summaryLabel, { color: colors.textLight }]}>Diferencia</Text>
-            <Text
-              style={[
-                styles.summaryValue,
-                { color: isBalanced ? colors.success : colors.error },
-              ]}
-            >
-              {totalProduced - totalAssigned}
-            </Text>
-          </View>
-        </View>
+        {/* Reconciliation Panel */}
+        <ReconciliationPanel
+          totalProduced={totalProduced}
+          totalAssigned={totalAssigned}
+          colors={{
+            background: colors.background,
+            text: colors.text,
+            textLight: colors.textLight,
+            white: colors.white,
+            border: colors.border,
+            success: colors.success,
+            error: colors.error,
+          }}
+        />
 
         {/* Production Table */}
-        <View style={[styles.section, { backgroundColor: colors.white }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Tabla de Producción</Text>
+        {isMobile ? (
+          <MobileProductionTable
+            quantities={quantities}
+            isReadOnly={productionStore.isReadOnly}
+            onQuantityChange={handleQuantityChange}
+            colors={{
+              background: colors.background,
+              text: colors.text,
+              textLight: colors.textLight,
+              border: colors.border,
+              white: colors.white,
+            }}
+          />
+        ) : (
+          <View style={[styles.section, { backgroundColor: colors.white }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Tabla de Producción</Text>
 
-          <View style={styles.tableContainer}>
-            {/* Table Header */}
-            <View style={[styles.tableHeader, { backgroundColor: colors.background }]}>
-              <Text style={[styles.tableHeaderCell, styles.flavorCell, { color: colors.text }]} />
-              {PRODUCTION_PRODUCT_TYPES.map((product) => (
-                <Text
-                  key={product}
-                  style={[styles.tableHeaderCell, styles.productCell, { color: colors.text }]}
+            <View style={styles.tableContainer}>
+              {/* Table Header */}
+              <View style={[styles.tableHeader, { backgroundColor: colors.background }]}>
+                <Text style={[styles.tableHeaderCell, styles.flavorCell, { color: colors.text }]} />
+                {PRODUCTION_PRODUCT_TYPES.map((product) => (
+                  <Text
+                    key={product}
+                    style={[styles.tableHeaderCell, styles.productCell, { color: colors.text }]}
+                  >
+                    {product}
+                  </Text>
+                ))}
+              </View>
+
+              {/* Table Body */}
+              {FLAVOR_CODES.map((flavor) => (
+                <View
+                  key={flavor}
+                  style={[styles.tableRow, { borderBottomColor: colors.border }]}
                 >
-                  {product}
-                </Text>
+                  <Text style={[styles.flavorCell, { color: colors.text }]}>{flavor}</Text>
+                  {PRODUCTION_PRODUCT_TYPES.map((product) => {
+                    const key = `${flavor}:${product}`;
+                    const value = quantities.get(key) || 0;
+                    const isReadOnly = productionStore.isReadOnly;
+                    return (
+                      <TextInput
+                        key={key}
+                        style={[
+                          styles.quantityCell,
+                          styles.quantityInput,
+                          { borderColor: colors.border, backgroundColor: colors.background, color: colors.text },
+                        ]}
+                        keyboardType="number-pad"
+                        value={String(value)}
+                        onChangeText={(text) => handleQuantityChange(flavor, product, text)}
+                        editable={!isReadOnly}
+                        accessibilityLabel={`Sabor ${flavor}, producto ${PRODUCT_LABELS[product] ?? product}, cantidad`}
+                        onBlur={() => {
+                          // Validate on blur: ensure valid integer
+                          const keyStr = `${flavor}:${product}`;
+                          const numValue = quantities.get(keyStr) || 0;
+                          // Clamp to non-negative
+                          if (numValue < 0) {
+                            handleQuantityChange(flavor, product, "0");
+                          }
+                        }}
+                      />
+                    );
+                  })}
+                </View>
               ))}
             </View>
-
-            {/* Table Body */}
-            {FLAVOR_CODES.map((flavor) => (
-              <View
-                key={flavor}
-                style={[styles.tableRow, { borderBottomColor: colors.border }]}
-              >
-                <Text style={[styles.flavorCell, { color: colors.text }]}>{flavor}</Text>
-                {PRODUCTION_PRODUCT_TYPES.map((product) => {
-                  const key = `${flavor}:${product}`;
-                  const value = quantities.get(key) || 0;
-                  const isReadOnly = productionStore.isReadOnly;
-                  return (
-                    <TextInput
-                      key={key}
-                      style={[
-                        styles.quantityCell,
-                        styles.quantityInput,
-                        { borderColor: colors.border, backgroundColor: colors.background, color: colors.text },
-                      ]}
-                      keyboardType="number-pad"
-                      value={String(value)}
-                      onChangeText={(text) => handleQuantityChange(flavor, product, text)}
-                      editable={!isReadOnly}
-                      onBlur={() => {
-                        // Validate on blur: ensure valid integer
-                        const keyStr = `${flavor}:${product}`;
-                        const numValue = quantities.get(keyStr) || 0;
-                        // Clamp to non-negative
-                        if (numValue < 0) {
-                          handleQuantityChange(flavor, product, "0");
-                        }
-                      }}
-                    />
-                  );
-                })}
-              </View>
-            ))}
           </View>
-        </View>
+        )}
 
         {/* Customer Distribution */}
         <View style={[styles.section, { backgroundColor: colors.white }]}>
@@ -466,13 +495,13 @@ export default function ProductionScreen() {
                       key={idx}
                       style={[
                         styles.productBadge,
-                        { backgroundColor: getProductColor(product.type) + "20" },
+                        { backgroundColor: getProductColor(product.type, colors) + "20" },
                       ]}
                     >
                       <Text
                         style={[
                           styles.productBadgeText,
-                          { color: getProductColor(product.type) },
+                          { color: getProductColor(product.type, colors) },
                         ]}
                       >
                         {product.type}: {product.quantity}
@@ -484,6 +513,19 @@ export default function ProductionScreen() {
             ))
           )}
         </View>
+
+        {/* Distribution Summary */}
+        <DistributionSummary
+          summary={distributionSummary}
+          colors={{
+            background: colors.white,
+            primary: colors.primary,
+            text: colors.text,
+            textLight: colors.textLight,
+            white: colors.white,
+            border: colors.border,
+          }}
+        />
 
         {/* Version History */}
         <VersionHistory
@@ -529,8 +571,8 @@ export default function ProductionScreen() {
           onPress={handleSave}
           disabled={!isBalanced || productionStore.isReadOnly}
         >
-          <Save size={20} color={colors.white} />
-          <Text style={styles.saveButtonText}>
+          <Save size={20} color={colors.onPrimary} />
+          <Text style={[styles.saveButtonText, { color: colors.onPrimary }]}>
             {productionStore.isReadOnly
               ? "Modo Sólo Lectura"
               : isBalanced
@@ -543,24 +585,25 @@ export default function ProductionScreen() {
   );
 }
 
-function getProductColor(type: string): string {
+function getProductColor(type: string, colors: ColorSet): string {
   switch (type) {
     case "A":
-      return COLORS.productA;
+      return colors.productA;
     case "GNY":
-      return COLORS.productGNY;
+      return colors.productGNY;
     case "C":
-      return COLORS.productC;
+      return colors.productC;
     case "K":
-      return COLORS.productK;
+      return colors.productK;
     default:
-      return COLORS.primary;
+      return colors.primary;
   }
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    minHeight: 0,
   },
   header: {
     flexDirection: "row",
@@ -582,7 +625,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    minHeight: 0,
+  },
+  contentContainer: {
     padding: SIZES.padding,
+    flexGrow: 1,
   },
   dateSelector: {
     flexDirection: "row",
@@ -605,25 +652,6 @@ const styles = StyleSheet.create({
   dateText: {
     ...FONTS.body2,
     fontWeight: "600",
-  },
-  summaryCards: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 16,
-  },
-  summaryCard: {
-    flex: 1,
-    padding: 16,
-    borderRadius: SIZES.radius,
-    alignItems: "center",
-  },
-  summaryLabel: {
-    ...FONTS.body3,
-    marginBottom: 4,
-  },
-  summaryValue: {
-    ...FONTS.h2,
-    fontWeight: "700",
   },
   section: {
     padding: 16,
@@ -723,7 +751,6 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     ...FONTS.body2,
-    color: COLORS.white,
     fontWeight: "600",
   },
 });

@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { COLORS } from '@/constants/theme';
 import { useThemeStore } from '@/store/themeStore';
 import { TAB_ITEMS } from './tabConfig';
 
@@ -11,8 +10,7 @@ interface TabletTopNavProps {
 
 export function TabletTopNav({ activeHref }: TabletTopNavProps) {
   const router = useRouter();
-  const { theme } = useThemeStore();
-  const colors = COLORS.themed(theme);
+  const colors = useThemeStore((state) => state.resolvedColors);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
@@ -34,6 +32,7 @@ export function TabletTopNav({ activeHref }: TabletTopNavProps) {
               style={[
                 styles.label,
                 { color: isActive ? colors.primary : colors.textLight },
+                isActive && styles.activeLabel,
               ]}
             >
               {item.title}
@@ -65,5 +64,8 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: 'Montserrat_500Medium',
     fontSize: 14,
+  },
+  activeLabel: {
+    fontFamily: 'Montserrat_600SemiBold',
   },
 });

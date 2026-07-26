@@ -116,18 +116,51 @@ export function selectValidOrders(
   return items.filter((item): item is Order => !("legacyReason" in item));
 }
 
-// Get distribution summary
-export function selectDistributionSummary(orders: Order[]) {
-  const total = orders.length;
-  const byFlavor: Record<string, number> = {};
+export interface DistributionSummaryEntry {
+  customer: string;
+  flavor: FlavorCode;
+  assignedTotal: number;
+  share: number;
+  productCounts: Record<ProductType, number>;
+}
 
-  orders.forEach((order) => {
-    const flavor = order.flavor || "Unknown";
-    byFlavor[flavor] = (byFlavor[flavor] || 0) + 1;
+export interface DistributionSummary {
+  totalCustomers: number;
+  totalAssigned: number;
+  entries: DistributionSummaryEntry[];
+}
+
+// Aggregate how production is distributed across customers:
+// total assigned per customer, per-customer share of the overall total,
+// and the overall totals. Read-only view over orders; does not mutate.
+export function selectDistributionSummary(orders: Order[]): DistributionSummary {
+  const entries: DistributionSummaryEntry[] = orders.map((order) => {
+    const productCounts: Partial<Record<ProductType, number>> = {};
+    let assignedTotal = 0;
+    order.products.forEach((product) => {
+      productCounts[product.type] = (productCounts[product.type] || 0) + product.quantity;
+      assignedTotal += product.quantity;
+    });
+    return {
+      customer: order.gymName,
+      flavor: order.flavor,
+      assignedTotal,
+      share: 0,
+      productCounts: productCounts as Record<ProductType, number>,
+    };
   });
 
+  const totalAssigned = entries.reduce((sum, e) => sum + e.assignedTotal, 0);
+
+  entries.forEach((e) => {
+    e.share = totalAssigned > 0 ? (e.assignedTotal / totalAssigned) * 100 : 0;
+  });
+
+  entries.sort((a, b) => b.assignedTotal - a.assignedTotal);
+
   return {
-    total,
-    byFlavor,
+    totalCustomers: orders.length,
+    totalAssigned,
+    entries,
   };
 }

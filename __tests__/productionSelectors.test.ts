@@ -3,6 +3,7 @@ import {
   selectReconciliation,
   selectDaySummary,
   selectCustomerDistribution,
+  selectDistributionSummary,
   selectLegacyOrders,
   selectValidOrders,
 } from "@/services/productionSelectors";
@@ -139,6 +140,73 @@ describe("productionSelectors", () => {
 
       const result = selectValidOrders(mixed);
       expect(result).toHaveLength(2);
+    });
+  });
+
+  describe("selectDistributionSummary", () => {
+    it("aggregates per-customer assigned totals and overall totals", () => {
+      const result = selectDistributionSummary(mockOrders);
+      // mockOrders assigned: Gym A (5+3=8), Gym B (2), Gym C (10) => total 20
+      expect(result.totalCustomers).toBe(3);
+      expect(result.totalAssigned).toBe(20);
+      expect(result.entries).toHaveLength(3);
+    });
+
+    it("computes each customer's share of the overall total", () => {
+      const result = selectDistributionSummary(mockOrders);
+      // Gym A: 8/20 = 40%, Gym C: 10/20 = 50%, Gym B: 2/20 = 10%
+      const gymA = result.entries.find((e) => e.customer === "Gym A");
+      const gymB = result.entries.find((e) => e.customer === "Gym B");
+      const gymC = result.entries.find((e) => e.customer === "Gym C");
+      expect(gymA?.share).toBeCloseTo(40, 5);
+      expect(gymB?.share).toBeCloseTo(10, 5);
+      expect(gymC?.share).toBeCloseTo(50, 5);
+    });
+
+    it("sorts entries by assigned total descending", () => {
+      const result = selectDistributionSummary(mockOrders);
+      // Gym C (10) > Gym A (8) > Gym B (2)
+      expect(result.entries[0].customer).toBe("Gym C");
+      expect(result.entries[1].customer).toBe("Gym A");
+      expect(result.entries[2].customer).toBe("Gym B");
+    });
+
+    it("breaks down per-product counts for each customer", () => {
+      const result = selectDistributionSummary(mockOrders);
+      const gymA = result.entries.find((e) => e.customer === "Gym A");
+      // Gym A ordered A:5 and C:3
+      expect(gymA?.productCounts["A"]).toBe(5);
+      expect(gymA?.productCounts["C"]).toBe(3);
+    });
+
+    it("returns zero totals and empty entries for empty orders", () => {
+      const result = selectDistributionSummary([]);
+      expect(result.totalCustomers).toBe(0);
+      expect(result.totalAssigned).toBe(0);
+      expect(result.entries).toEqual([]);
+    });
+
+    it("assigns zero share to each customer when total assigned is zero", () => {
+      const zeroOrders: Order[] = [
+        {
+          id: "z1",
+          gymName: "Gym Z",
+          products: [{ type: "A", quantity: 0 }],
+          status: "Entregado",
+          flavor: "Apple Pie",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ];
+      const result = selectDistributionSummary(zeroOrders);
+      expect(result.totalAssigned).toBe(0);
+      expect(result.entries[0].share).toBe(0);
+    });
+
+    it("preserves customer flavor in each entry", () => {
+      const result = selectDistributionSummary(mockOrders);
+      const gymB = result.entries.find((e) => e.customer === "Gym B");
+      expect(gymB?.flavor).toBe("Berry Lover");
     });
   });
 });

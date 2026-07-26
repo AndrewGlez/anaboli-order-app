@@ -8,13 +8,14 @@ describe("productionMobileNavigation", () => {
         { id: "summary", label: "Resumen" },
         { id: "production-table", label: "Producción" },
         { id: "customer-distribution", label: "Clientes" },
+        { id: "distribution-summary", label: "Distribución" },
         { id: "version-history", label: "Historial" },
         { id: "legacy-fixes", label: "Correcciones" },
       ]);
     });
 
-    it("has 6 sections", () => {
-      expect(SECTIONS).toHaveLength(6);
+    it("has 7 sections", () => {
+      expect(SECTIONS).toHaveLength(7);
     });
   });
 

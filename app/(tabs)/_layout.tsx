@@ -1,7 +1,6 @@
 import { usePathname } from "expo-router";
 import { Tabs, TabSlot, TabTrigger, TabList } from "expo-router/ui";
 import { StyleSheet, View } from "react-native";
-import { COLORS } from "@/constants/theme";
 import { useThemeStore } from "@/store/themeStore";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { PhoneTabs } from "@/components/navigation/PhoneTabs";
@@ -9,8 +8,7 @@ import { TabletTopNav } from "@/components/navigation/TabletTopNav";
 import { DesktopSidebar } from "@/components/navigation/DesktopSidebar";
 
 export default function TabLayout() {
-  const { theme } = useThemeStore();
-  const colors = COLORS.themed(theme);
+  const colors = useThemeStore((state) => state.resolvedColors);
   const breakpoint = useBreakpoint();
   const pathname = usePathname();
 
@@ -28,21 +26,23 @@ export default function TabLayout() {
   // default bottom tab bar is rendered; DesktopSidebar handles navigation.
   if (breakpoint === "desktop") {
     return (
-      <Tabs>
-        <View style={styles.desktopContainer}>
-          <DesktopSidebar activeHref={getActiveHref()} />
-          <View style={styles.content}>
-            <TabSlot />
+      <Tabs asChild>
+        <View style={styles.tabs}>
+          <View style={styles.desktopContainer}>
+            <DesktopSidebar activeHref={getActiveHref()} />
+            <View style={styles.content}>
+              <TabSlot />
+            </View>
           </View>
+          <TabList>
+            <TabTrigger name="index" href="/" />
+            <TabTrigger name="new-order" href="/new-order" />
+            <TabTrigger name="production" href="/production" />
+            <TabTrigger name="analytics" href="/analytics" />
+            <TabTrigger name="inventory" href="/inventory" />
+            <TabTrigger name="settings" href="/settings" />
+          </TabList>
         </View>
-        <TabList>
-          <TabTrigger name="index" href="/" />
-          <TabTrigger name="new-order" href="/new-order" />
-          <TabTrigger name="production" href="/production" />
-          <TabTrigger name="analytics" href="/analytics" />
-          <TabTrigger name="inventory" href="/inventory" />
-          <TabTrigger name="settings" href="/settings" />
-        </TabList>
       </Tabs>
     );
   }
@@ -50,21 +50,23 @@ export default function TabLayout() {
   // Tablet: top navigation. Same headless Tabs as desktop.
   if (breakpoint === "tablet") {
     return (
-      <Tabs>
-        <View style={styles.tabletContainer}>
-          <TabletTopNav activeHref={getActiveHref()} />
-          <View style={styles.content}>
-            <TabSlot />
+      <Tabs asChild>
+        <View style={styles.tabs}>
+          <View style={styles.tabletContainer}>
+            <TabletTopNav activeHref={getActiveHref()} />
+            <View style={styles.content}>
+              <TabSlot />
+            </View>
           </View>
+          <TabList>
+            <TabTrigger name="index" href="/" />
+            <TabTrigger name="new-order" href="/new-order" />
+            <TabTrigger name="production" href="/production" />
+            <TabTrigger name="analytics" href="/analytics" />
+            <TabTrigger name="inventory" href="/inventory" />
+            <TabTrigger name="settings" href="/settings" />
+          </TabList>
         </View>
-        <TabList>
-          <TabTrigger name="index" href="/" />
-          <TabTrigger name="new-order" href="/new-order" />
-          <TabTrigger name="production" href="/production" />
-          <TabTrigger name="analytics" href="/analytics" />
-          <TabTrigger name="inventory" href="/inventory" />
-          <TabTrigger name="settings" href="/settings" />
-        </TabList>
       </Tabs>
     );
   }
@@ -74,14 +76,21 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+  tabs: {
+    flex: 1,
+    minHeight: 0,
+  },
   desktopContainer: {
     flex: 1,
     flexDirection: "row",
+    minHeight: 0,
   },
   tabletContainer: {
     flex: 1,
+    minHeight: 0,
   },
   content: {
     flex: 1,
+    minHeight: 0,
   },
 });

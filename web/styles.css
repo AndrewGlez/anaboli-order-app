@@ -1,0 +1,24 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+#root > div {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Expo Router's web Stack wrappers default to flex-shrink: 0. That lets a
+ * ScrollView's content height escape the viewport instead of becoming scrollable. */
+#root .r-flexShrink-1q142lx {
+  flex-shrink: 1;
+  min-height: 0;
+}

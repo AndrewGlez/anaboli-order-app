@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { FONTS, SIZES } from "@/constants/theme";
 import { SECTIONS } from "./sectionNavigation";
+import { truncateLabel } from "./mobileProductionLayout";
 
 interface SectionNavigationProps {
   activeSectionId: string;
@@ -47,6 +48,9 @@ export function SectionNavigation({
                 },
               ]}
               onPress={() => onSectionPress(section.id)}
+              accessibilityRole="button"
+              accessibilityLabel={section.label}
+              accessibilityState={{ selected: isActive }}
             >
               <Text
                 style={[
@@ -55,8 +59,9 @@ export function SectionNavigation({
                     color: isActive ? colors.white : colors.primary,
                   },
                 ]}
+                numberOfLines={1}
               >
-                {section.label}
+                {truncateLabel(section.label)}
               </Text>
               {isActive && (
                 <View style={[styles.activeIndicator, { backgroundColor: colors.white }]} />
@@ -77,17 +82,19 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 8,
+    paddingEnd: 16,
     gap: 8,
   },
   sectionButton: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: SIZES.radius,
     borderWidth: 1,
     marginRight: 8,
     alignItems: "center",
     justifyContent: "center",
-    minWidth: 80,
+    minWidth: 72,
+    maxWidth: 140,
   },
   sectionLabel: {
     ...FONTS.body3,

@@ -1,13 +1,18 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Platform, useColorScheme as useRNColorScheme } from 'react-native';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useFonts, Montserrat_400Regular, Montserrat_500Medium, Montserrat_600SemiBold, Montserrat_700Bold } from '@expo-google-fonts/montserrat';
 import { SplashScreen } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Platform } from 'react-native';
+import { useThemeStore } from '@/store/themeStore';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { UpdateToast } from '@/components/UpdateToast';
+
+if (Platform.OS === 'web') {
+  require('@/web/styles.css');
+}
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -51,6 +56,17 @@ export default function RootLayout() {
   useFrameworkReady();
   useServiceWorkerRegistration();
   const colorScheme = useColorScheme();
+  const setSystemTheme = useThemeStore((s) => s.setSystemTheme);
+  const rnSystemScheme = useRNColorScheme();
+
+  // Feed the host OS preference into the theme store so `mode === "system"`
+  // resolves reactively. `useRNColorScheme` returns "light" | "dark" | null
+  // (web); null is treated as the existing systemTheme, not as an override.
+  useEffect(() => {
+    if (rnSystemScheme === 'light' || rnSystemScheme === 'dark') {
+      setSystemTheme(rnSystemScheme);
+    }
+  }, [rnSystemScheme, setSystemTheme]);
 
   const [fontsLoaded, fontError] = useFonts({
     Montserrat_400Regular,
