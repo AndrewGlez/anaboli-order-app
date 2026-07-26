@@ -4,6 +4,7 @@ import {
   Settings,
   PlusCircle,
   Package,
+  Factory,
 } from 'lucide-react-native';
 
 export interface TabItem {
@@ -25,6 +26,12 @@ export const TAB_ITEMS: TabItem[] = [
     href: '/new-order',
     title: 'Nuevo',
     icon: PlusCircle,
+  },
+  {
+    name: 'production',
+    href: '/production',
+    title: 'Producción',
+    icon: Package,
   },
   {
     name: 'analytics',

@@ -1,10 +1,18 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { OrderStore } from "@/types";
+import { OrderStore, Order, RawPersistedOrder, LegacyOrder, FlavorCode } from "@/types";
 import { useInventoryStore } from "./inventoryStore";
+import { isValidFlavor, assertFlavor } from "@/constants/productionCatalog";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
+
+// Extended store interface with flavor validation
+export interface ExtendedOrderStore extends OrderStore {
+  hydrateOrder: (raw: RawPersistedOrder) => Order | LegacyOrder;
+  validateFlavor: (flavor: unknown) => FlavorCode;
+  fixOrderFlavor: (id: string, flavor: FlavorCode) => { ok: true } | { ok: false; reason: string };
+}
 
 export const useOrderStore = create<OrderStore>()(
   persist(
@@ -217,6 +225,53 @@ export const useOrderStore = create<OrderStore>()(
             success: false,
             message: `Error al exportar: ${error.message}`,
           };
+        }
+      },
+
+      // Hydration: converts raw persisted order to Order or LegacyOrder
+      hydrateOrder: (raw: RawPersistedOrder): Order | LegacyOrder => {
+        // Check if flavor exists and is valid
+        if (!raw.flavor || !isValidFlavor(raw.flavor)) {
+          const legacyOrder: LegacyOrder = {
+            order: { ...raw, flavor: undefined as unknown as FlavorCode },
+            legacyFlavor: raw.flavor,
+            legacyReason: raw.flavor === null || raw.flavor === undefined || raw.flavor === "" ? "missing" : "invalid",
+          };
+          return legacyOrder;
+        }
+
+        // Valid order with flavor
+        const order: Order = {
+          ...raw,
+          flavor: raw.flavor as FlavorCode,
+        };
+        return order;
+      },
+
+      // Validate flavor and return FlavorCode or throw
+      validateFlavor: (flavor: unknown): FlavorCode => {
+        return assertFlavor(flavor);
+      },
+
+      // Fix an order's flavor (migrate legacy order to valid order)
+      fixOrderFlavor: (id: string, flavor: FlavorCode): { ok: true } | { ok: false; reason: string } => {
+        try {
+          const state = get();
+          const existingOrder = state.orders.find((o) => o.id === id);
+          if (!existingOrder) return { ok: false, reason: "Order not found" };
+
+          // Update the order with the new valid flavor
+          set((s) => ({
+            orders: s.orders.map((order) =>
+              order.id === id
+                ? { ...order, flavor, updatedAt: new Date().toISOString() }
+                : order
+            ),
+            lastUpdated: Date.now(),
+          }));
+          return { ok: true };
+        } catch (error) {
+          return { ok: false, reason: String(error) };
         }
       },
     }),

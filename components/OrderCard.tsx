@@ -30,9 +30,12 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 interface OrderCardProps {
   order: Order;
   index?: number;
+  onFix?: (id: string) => void;
+  isLegacy?: boolean;
+  legacyReason?: string;
 }
 
-export default function OrderCard({ order, index = 0 }: OrderCardProps) {
+export default function OrderCard({ order, index = 0, onFix, isLegacy, legacyReason }: OrderCardProps) {
   const { theme } = useThemeStore();
 
   const colors = COLORS.themed(theme);
@@ -101,11 +104,16 @@ export default function OrderCard({ order, index = 0 }: OrderCardProps) {
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
-        <View style={[styles.cardHeader, { borderBottomColor: colors.border }]}>
+         <View style={[styles.cardHeader, { borderBottomColor: colors.border }]}>
           <Text style={[styles.gymName, { color: colors.text }]}>
             {order.gymName}
           </Text>
           <View style={styles.headerRight}>
+            {isLegacy && (
+              <View style={[styles.legacyBadge, { backgroundColor: colors.warning + "20" }]}>
+                <Text style={[styles.legacyBadgeText, { color: colors.warning }]} />
+              </View>
+            )}
             <StatusBadge status={order.status} />
             <TouchableOpacity
               style={styles.optionsButton}
@@ -209,6 +217,24 @@ export default function OrderCard({ order, index = 0 }: OrderCardProps) {
               Eliminar
             </Text>
           </TouchableOpacity>
+          {isLegacy && onFix && (
+            <TouchableOpacity
+              style={styles.optionItem}
+              onPress={() => {
+                onFix(order.id);
+                setShowOptions(false);
+              }}
+            >
+              <Pencil
+                size={16}
+                color={colors.warning}
+                style={styles.optionIcon}
+              />
+              <Text style={[styles.optionText, { color: colors.warning }]}>
+                Corregir Sabor
+              </Text>
+            </TouchableOpacity>
+          )}
         </Animated.View>
       )}
 
@@ -341,5 +367,15 @@ const styles = StyleSheet.create({
   optionText: {
     ...FONTS.body3,
     color: COLORS.text,
+  },
+  legacyBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  legacyBadgeText: {
+    ...FONTS.body3,
+    fontWeight: "600",
   },
 });

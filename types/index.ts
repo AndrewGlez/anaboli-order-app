@@ -14,6 +14,20 @@ export interface Gasto {
   createdAt: string;
 }
 
+// Flavor codes from production catalog
+export type FlavorCode =
+  | "Apple Pie"
+  | "Berry Lover"
+  | "Maracuyá Citrus"
+  | "Higo Toffee"
+  | "Piña Coconut"
+  | "Maní Crunch"
+  | "Expreso Coffee"
+  | "Choco Power"
+  | "Banana Coffee"
+  | "Choco Nuts"
+  | "Choco Menta";
+
 export interface Order {
   id: string;
   gymName: string;
@@ -23,7 +37,18 @@ export interface Order {
   price?: number;
   createdAt: string;
   updatedAt: string;
+  flavor: FlavorCode;
 }
+
+// Legacy order type for migration - orders with missing or invalid flavors
+export interface LegacyOrder {
+  order: Omit<Order, "flavor">;
+  legacyFlavor: unknown;
+  legacyReason: "missing" | "invalid";
+}
+
+// Raw persisted order from storage (before hydration)
+export type RawPersistedOrder = Omit<Order, "flavor"> & { flavor?: unknown | null };
 
 export interface StockItem {
   id: string;
@@ -90,4 +115,8 @@ export interface OrderStore {
   updateGasto: (id: string, updatedGasto: Partial<Gasto>) => void;
   deleteGasto: (id: string) => void;
   clearGastos: () => void;
+  // Flavor validation methods
+  hydrateOrder: (raw: RawPersistedOrder) => Order | LegacyOrder;
+  validateFlavor: (flavor: unknown) => FlavorCode;
+  fixOrderFlavor: (id: string, flavor: FlavorCode) => { ok: true } | { ok: false; reason: string };
 }
