@@ -1,14 +1,27 @@
 import React from "react";
-import { render } from "@testing-library/react-native";
+import renderer from "react-test-renderer";
 import { Platform } from "react-native";
 import { InstallPrompt } from "@/components/InstallPrompt";
 
 // Mock the useInstallPrompt hook
-jest.mock("@/hooks/useInstallPrompt");
+jest.mock("@/hooks/useInstallPrompt", () => ({
+	useInstallPrompt: jest.fn(() => ({
+		canInstall: false,
+		isStandalone: false,
+		prompt: jest.fn(),
+	})),
+}));
+
+// Mock theme store
+jest.mock("@/store/themeStore", () => ({
+	useThemeStore: jest.fn(() => ({
+		theme: "light",
+	})),
+}));
 
 describe("InstallPrompt component", () => {
 	// REQ-001: Suppress on non-web
-	test("suppresses on non-web Platform.OS", async () => {
+	test("suppresses on non-web Platform.OS", () => {
 		// Mock Platform.OS to 'ios'
 		const originalPlatformOS = Platform.OS;
 		Object.defineProperty(Platform, "OS", {
@@ -16,8 +29,8 @@ describe("InstallPrompt component", () => {
 			configurable: true,
 		});
 
-		const { rerender } = await render(<InstallPrompt />);
-		rerender(<InstallPrompt />);
+		const tree = renderer.create(<InstallPrompt />).toJSON();
+		expect(tree).toBeNull();
 
 		// Restore
 		Object.defineProperty(Platform, "OS", {
