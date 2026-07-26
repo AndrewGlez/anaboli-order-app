@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Platform,
   Pressable,
 } from "react-native";
 import Animated, {
@@ -159,10 +160,12 @@ export default function NewOrderScreen() {
               .map(([type, qty]) => `${type} (faltan ${qty})`)
               .join(", ")
           : "";
-        Alert.alert(
-          "Stock insuficiente",
-          `No hay suficiente stock para esta orden${shortfall ? `: ${shortfall}` : ""}`
-        );
+        const message = `No hay suficiente stock para esta orden${shortfall ? `: ${shortfall}` : ""}`;
+        if (Platform.OS === "web") {
+          toast.error("Stock insuficiente", { description: message });
+        } else {
+          Alert.alert("Stock insuficiente", message);
+        }
       } else {
         Alert.alert("Error", `No se pudo crear la orden: ${result.reason}`);
       }
