@@ -67,7 +67,7 @@ export default function OrdersScreen() {
     >
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={styles.titleContainer}>
-          <Text style={[styles.title, { color: colors.text }]}>📋 Ordenes</Text>
+          <Text style={[styles.title, { color: colors.text }]}>📋 Órdenes</Text>
           <Text style={[styles.subtitle, { color: colors.textLight }]}>
             ☁️ {today}
           </Text>
