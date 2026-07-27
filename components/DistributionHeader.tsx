@@ -41,13 +41,6 @@ export default function DistributionHeader({
         <TouchableOpacity onPress={onNextDay} style={styles.navButton}>
           <ChevronRight size={20} color={colors.onPrimary} />
         </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={onGymManagement}
-          style={styles.gymButton}
-        >
-          <Users size={18} color={colors.onPrimary} />
-        </TouchableOpacity>
       </View>
       <Text style={[styles.title, { color: colors.onPrimary }]}>
         DISTRIBUCIÓN POR CLIENTES
