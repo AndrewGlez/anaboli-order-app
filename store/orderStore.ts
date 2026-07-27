@@ -306,16 +306,17 @@ export const useOrderStore = create<OrderStore>()(
           // Destructure to exclude the flavor property
           const { flavor: _flavor, ...orderWithoutFlavor } = raw;
           const legacyOrder: LegacyOrder = {
-            order: orderWithoutFlavor as Omit<Order, "flavor">,
+            order: { ...orderWithoutFlavor, gymId: orderWithoutFlavor.gymId ?? "" } as Omit<Order, "flavor">,
             legacyFlavor: raw.flavor,
             legacyReason: raw.flavor === null || raw.flavor === undefined || raw.flavor === "" ? "missing" : "invalid",
           };
           return legacyOrder;
         }
 
-        // Valid order with flavor
+        // Valid order with flavor — default gymId for legacy orders
         const order: Order = {
           ...raw,
+          gymId: raw.gymId ?? "",
           flavor: raw.flavor as FlavorCode,
         };
         return order;
