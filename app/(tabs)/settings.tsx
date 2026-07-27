@@ -48,7 +48,7 @@ export default function SettingsScreen() {
           clearOrders();
           showAlert("Éxito", "Todos los datos han sido borrados.");
         },
-      }
+      },
     );
   };
 
@@ -58,12 +58,12 @@ export default function SettingsScreen() {
       await copyToClipboard(jsonData);
       showAlert(
         "Datos Exportados",
-        "Los datos han sido copiados al portapapeles como JSON. Puedes pegarlos en un archivo de texto para guardarlos."
+        "Los datos han sido copiados al portapapeles como JSON. Puedes pegarlos en un archivo de texto para guardarlos.",
       );
     } catch (error) {
       showAlert(
         "Error al exportar",
-        "No se pudieron exportar los datos. Inténtalo de nuevo."
+        "No se pudieron exportar los datos. Inténtalo de nuevo.",
       );
     }
   };
@@ -77,7 +77,7 @@ export default function SettingsScreen() {
     } catch (error) {
       showAlert(
         "Error al compartir",
-        "No se pudieron compartir los datos. Inténtalo de nuevo."
+        "No se pudieron compartir los datos. Inténtalo de nuevo.",
       );
     }
   };
@@ -98,7 +98,7 @@ export default function SettingsScreen() {
 
     showAlert(
       result.success ? "Importación exitosa" : "Error en la importación",
-      result.message
+      result.message,
     );
   };
 
@@ -109,7 +109,7 @@ export default function SettingsScreen() {
     } catch (error) {
       showAlert(
         "Error",
-        "No se pudo acceder al portapapeles. Por favor, pega manualmente."
+        "No se pudo acceder al portapapeles. Por favor, pega manualmente.",
       );
     }
   };
@@ -125,7 +125,11 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Apariencia
           </Text>
-          <ThemeModeSelector mode={mode} onModeChange={setMode} colors={colors} />
+          <ThemeModeSelector
+            mode={mode}
+            onModeChange={setMode}
+            colors={colors}
+          />
         </View>
 
         <View style={styles.section}>
@@ -204,7 +208,7 @@ export default function SettingsScreen() {
             </Text>
           </View>
           <Text style={[styles.aboutDetails, { color: colors.textLight }]}>
-            Una aplicación para gestionar tus pedidos. Desarrollada por{" "}
+            Developed by
             <Text
               onPress={() => Linking.openURL("https://github.com/AndrewGlez")}
               style={{
@@ -264,7 +268,11 @@ export default function SettingsScreen() {
                 onPress={handlePasteFromClipboard}
               >
                 <ClipboardCheck size={18} color={colors.onPrimary} />
-                <Text style={[styles.pasteButtonText, { color: colors.onPrimary }]}>Pegar</Text>
+                <Text
+                  style={[styles.pasteButtonText, { color: colors.onPrimary }]}
+                >
+                  Pegar
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={styles.modalButtons}>
