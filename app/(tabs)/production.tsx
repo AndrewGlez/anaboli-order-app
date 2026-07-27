@@ -36,7 +36,11 @@ import {
 import { PRODUCT_LABELS } from "@/components/production/mobileProductionLayout";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { canPrint, printReport } from "@/services/web/productionPrint";
-import { canExport, exportReport } from "@/services/productionExport";
+import {
+	canExport,
+	exportReport,
+	exportReportToDataURI,
+} from "@/services/productionExport";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { toast } from "sonner";
 import { VersionHistory } from "@/components/production/VersionHistory";
@@ -173,7 +177,8 @@ export default function ProductionScreen() {
 	const handleSave = async () => {
 		// Check if viewing historical version - block save
 		if (productionStore.isReadOnly) {
-			const msg = "No puedes guardar cambios mientras ves una versión histórica.";
+			const msg =
+				"No puedes guardar cambios mientras ves una versión histórica.";
 			if (Platform.OS === "web") {
 				toast.error("Modo Sólo Lectura", { description: msg });
 			} else {
@@ -209,15 +214,35 @@ export default function ProductionScreen() {
 	const handleExport = async () => {
 		const report = productionStore.selectCurrentReport();
 		if (!report) {
-			Alert.alert("Error", "No hay reporte para exportar");
+			const msg = "No hay reporte para exportar";
+			if (Platform.OS === "web") {
+				toast.error(msg);
+			} else {
+				Alert.alert("Error", msg);
+			}
 			return;
 		}
 
-		const result = await exportReport(report, ordersForDate);
-		if (result.success) {
-			Alert.alert("Éxito", result.message);
+		if (Platform.OS === "web") {
+			const dataUri = exportReportToDataURI(report, ordersForDate);
+			const fileDate = report.date;
+			const fileName = `anaboli-production-${fileDate}-v${report.version}.xlsx`;
+
+			const link = document.createElement("a");
+			link.href = dataUri;
+			link.download = fileName;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+
+			toast.success("Reporte exportado");
 		} else {
-			Alert.alert("Error", result.message);
+			const result = await exportReport(report, ordersForDate);
+			if (result.success) {
+				Alert.alert("Éxito", result.message);
+			} else {
+				Alert.alert("Error", result.message);
+			}
 		}
 	};
 
