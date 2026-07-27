@@ -37,6 +37,9 @@ export function PhoneTabs() {
 					}}
 				/>
 			))}
+			{/* Hide routes that exist in (tabs)/ but should not appear in the tab bar */}
+			<Tabs.Screen name="new-order" options={{ href: null }} />
+			<Tabs.Screen name="analytics" options={{ href: null }} />
 		</Tabs>
 	);
 }
