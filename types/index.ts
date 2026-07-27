@@ -1,5 +1,74 @@
 export type ProductType = "A" | "GNY" | "C" | "K";
 
+// Distribution matrix types
+export type DateKey = `${number}-${number}-${number}`;
+
+export interface Gym {
+  id: string;
+  name: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type GymInput = Omit<Gym, "id" | "createdAt" | "updatedAt">;
+export type GymPatch = Partial<Omit<Gym, "id" | "createdAt">>;
+
+export type MutationResult = { ok: true } | { ok: false; reason: string };
+
+export interface GymStore {
+  gyms: Gym[];
+  hydrated: boolean;
+  addGym: (input: GymInput) => { ok: true; id: string } | { ok: false; reason: string };
+  updateGym: (id: string, patch: GymPatch) => MutationResult;
+  toggleGymActive: (id: string) => MutationResult;
+  deleteGym: (id: string) => MutationResult;
+  getActiveGyms: () => Gym[];
+  getGymById: (id: string) => Gym | undefined;
+  getGymByName: (name: string) => Gym | undefined;
+}
+
+export interface CellKey {
+  gymId: string;
+  flavor: FlavorCode;
+  productType: ProductType;
+  date: DateKey;
+}
+
+export type CellValues = Record<ProductType, number>;
+
+export interface DistributionMatrixModel {
+  date: DateKey;
+  gyms: Gym[];
+  rows: {
+    flavor: FlavorCode;
+    values: Record<string, CellValues>;
+    total: CellValues;
+  }[];
+  gymTotals: Record<string, CellValues>;
+  grandTotal: number;
+}
+
+export interface StockWarning {
+  productType: ProductType;
+  requested: number;
+  available: number;
+  shortfall: number;
+}
+
+export interface CellEditContext extends CellKey {
+  newValue: number;
+  currentValue: number;
+}
+
+export interface CellEditResult {
+  ok: boolean;
+  value: number;
+  diff: number;
+  warning?: StockWarning;
+  reason?: string;
+}
+
 export type OrderStatus = "Entregado" | "Entregado + P" | "Entregado + TRF";
 
 export interface Product {
@@ -30,7 +99,8 @@ export type FlavorCode =
 
 export interface Order {
   id: string;
-  gymName: string;
+  gymId: string;
+  gymName: string; // immutable creation-time snapshot
   products: Product[];
   status: OrderStatus;
   notes?: string;
@@ -48,7 +118,7 @@ export interface LegacyOrder {
 }
 
 // Raw persisted order from storage (before hydration)
-export type RawPersistedOrder = Omit<Order, "flavor"> & { flavor?: unknown | null };
+export type RawPersistedOrder = Omit<Order, "flavor" | "gymId"> & { flavor?: unknown | null; gymId?: string };
 
 export interface StockItem {
   id: string;
@@ -99,11 +169,14 @@ export interface ImportResult {
 
 export type OrderResult = { ok: true } | { ok: false; reason: string; shortfall?: Partial<Record<ProductType, number>> };
 
+export type OrderResultWithWarning = { ok: true; warning?: StockWarning } | { ok: false; reason: string; shortfall?: Partial<Record<ProductType, number>> };
+
 export interface OrderStore {
   orders: Order[];
   gastos: Gasto[];
   lastUpdated: number;
   addOrder: (order: Order) => OrderResult;
+  addOrderDistributable: (order: Order) => OrderResultWithWarning;
   updateOrder: (id: string, updatedOrder: Partial<Order>) => OrderResult;
   deleteOrder: (id: string) => OrderResult;
   clearOrders: () => void;

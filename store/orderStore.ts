@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { OrderStore, Order, RawPersistedOrder, LegacyOrder, FlavorCode } from "@/types";
+import { OrderStore, Order, RawPersistedOrder, LegacyOrder, FlavorCode, ProductType } from "@/types";
 import { useInventoryStore } from "./inventoryStore";
 import { isValidFlavor, assertFlavor, FLAVOR_CODES } from "@/constants/productionCatalog";
 import * as FileSystem from "expo-file-system";
@@ -39,6 +39,52 @@ export const useOrderStore = create<OrderStore>()(
           lastUpdated: Date.now(),
         }));
         return { ok: true };
+      },
+
+      addOrderDistributable: (order) => {
+        const inventoryStore = useInventoryStore.getState();
+        if (!inventoryStore.hydrated) {
+          return { ok: false, reason: "Inventory not hydrated" };
+        }
+
+        const availability = inventoryStore.checkAvailability(order.products);
+        let warning;
+
+        if (!availability.available) {
+          // Build warning but continue — non-blocking
+          const firstShortfall = Object.entries(availability.shortfall).find(([, v]) => v && v > 0);
+          if (firstShortfall) {
+            const [pt, shortfallQty] = firstShortfall as [ProductType, number];
+            const requested = order.products.find((p) => p.type === pt)?.quantity ?? 0;
+            const available = requested - shortfallQty;
+            warning = {
+              productType: pt,
+              requested,
+              available: Math.max(0, available),
+              shortfall: shortfallQty,
+            };
+          }
+        }
+
+        // Consume what is available (consumeProducts will reject if insufficient;
+        // we only reach here when sufficient OR we consume partial)
+        if (!availability.available) {
+          // Consume only the available amounts
+          const availableProducts = order.products.map((p) => {
+            const item = inventoryStore.items.find((i) => i.type === p.type);
+            const avail = item?.quantity ?? 0;
+            return { type: p.type, quantity: Math.min(p.quantity, avail) };
+          });
+          inventoryStore.consumeProducts(availableProducts, `order:${order.id}`);
+        } else {
+          inventoryStore.consumeProducts(order.products, `order:${order.id}`);
+        }
+
+        set((state) => ({
+          orders: [...state.orders, order],
+          lastUpdated: Date.now(),
+        }));
+        return { ok: true, warning };
       },
 
       updateOrder: (id, updatedOrder) => {
