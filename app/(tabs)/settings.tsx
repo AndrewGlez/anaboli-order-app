@@ -208,7 +208,7 @@ export default function SettingsScreen() {
             </Text>
           </View>
           <Text style={[styles.aboutDetails, { color: colors.textLight }]}>
-            Developed by
+            Developed by{" "}
             <Text
               onPress={() => Linking.openURL("https://github.com/AndrewGlez")}
               style={{

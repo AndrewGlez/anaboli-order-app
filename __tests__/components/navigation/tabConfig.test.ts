@@ -24,7 +24,7 @@ describe("tabConfig", () => {
 	});
 
 	it("has correct tab titles", () => {
-		expect(TAB_ITEMS[0].title).toBe("Ordenes");
+		expect(TAB_ITEMS[0].title).toBe("Órdenes");
 		expect(TAB_ITEMS[1].title).toBe("Nuevo");
 		expect(TAB_ITEMS[2].title).toBe("Producción");
 		expect(TAB_ITEMS[3].title).toBe("Análisis");

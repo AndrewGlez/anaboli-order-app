@@ -22,7 +22,7 @@ import {
 	Table2,
 	Users,
 } from "lucide-react-native";
-import { useRouter } from "expo-router";
+
 import { FONTS, SIZES, type ColorSet } from "@/constants/theme";
 import { useThemeStore } from "@/store/themeStore";
 import { ReconciliationPanel } from "@/components/production/ReconciliationPanel";
@@ -38,23 +38,15 @@ import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { canPrint, printReport } from "@/services/web/productionPrint";
 import { canExport, exportReport } from "@/services/productionExport";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { SectionNavigation } from "@/components/production/SectionNavigation";
 import { VersionHistory } from "@/components/production/VersionHistory";
 import { LegacyFixList } from "@/components/production/LegacyFixList";
 import { DistributionSummary } from "@/components/production/DistributionSummary";
 import { MobileProductionTable } from "@/components/production/MobileProductionTable";
-import {
-	isLegacyOrder,
-	makeEligibleForReconciliation,
-} from "@/components/production/legacyFixes";
+
 import { VersionInfo } from "@/components/production/versionHistory";
 import { selectDistributionSummary } from "@/services/productionSelectors";
 
-const AnimatedTouchableOpacity =
-	Animated.createAnimatedComponent(TouchableOpacity);
-
 export default function ProductionScreen() {
-	const router = useRouter();
 	const colors = useThemeStore((state) => state.resolvedColors);
 	const breakpoint = useBreakpoint();
 	const isMobile = breakpoint === "phone";
@@ -78,9 +70,6 @@ export default function ProductionScreen() {
 		});
 		return map;
 	});
-	const [activeSectionId, setActiveSectionId] = useState("date-selector");
-	const [scrollY, setScrollY] = useState(0);
-
 	// Rehydrate quantities when loading persisted reports or switching dates
 	React.useEffect(() => {
 		const entries = productionStore.selectEntriesForDate(selectedDate);
@@ -109,11 +98,6 @@ export default function ProductionScreen() {
 			return orderDate === selectedDate;
 		});
 	}, [orders, selectedDate]);
-
-	// Get legacy orders for the current date
-	const legacyOrdersForDate = useMemo(() => {
-		return ordersForDate.filter((order) => isLegacyOrder(order));
-	}, [ordersForDate]);
 
 	// Get versions for the selected date
 	const versionsForDate = useMemo(() => {
@@ -235,42 +219,6 @@ export default function ProductionScreen() {
 		productionStore.setCurrentDate(newDate);
 	};
 
-	// Handle section navigation (tap to scroll)
-	const handleSectionPress = useCallback((sectionId: string) => {
-		setActiveSectionId(sectionId);
-		// Scroll to section would happen here - using offsets
-		const sectionOffsets: Record<string, number> = {
-			"date-selector": 0,
-			summary: 200,
-			"production-table": 400,
-			"customer-distribution": 900,
-			"distribution-summary": 1150,
-			"version-history": 1450,
-			"legacy-fixes": 1750,
-		};
-		scrollViewRef.current?.scrollTo({
-			y: sectionOffsets[sectionId] || 0,
-			animated: true,
-		});
-	}, []);
-
-	// Handle scroll to track active section
-	const handleScroll = useCallback(
-		(event: { nativeEvent: { contentOffset: { y: number } } }) => {
-			const y = event.nativeEvent.contentOffset.y;
-			setScrollY(y);
-			// Approximate active section based on scroll position
-			if (y < 100) setActiveSectionId("date-selector");
-			else if (y < 300) setActiveSectionId("summary");
-			else if (y < 700) setActiveSectionId("production-table");
-			else if (y < 1000) setActiveSectionId("customer-distribution");
-			else if (y < 1300) setActiveSectionId("distribution-summary");
-			else if (y < 1600) setActiveSectionId("version-history");
-			else setActiveSectionId("legacy-fixes");
-		},
-		[],
-	);
-
 	// Handle version selection
 	const handleVersionSelect = useCallback(
 		(version: number) => {
@@ -375,29 +323,33 @@ export default function ProductionScreen() {
 							<Share2 size={20} color={colors.primary} />
 						</TouchableOpacity>
 					)}
+					<TouchableOpacity
+						style={[
+							styles.iconButton,
+							{
+								backgroundColor: isBalanced ? colors.success : colors.error,
+								opacity: isBalanced ? 1 : 0.7,
+							},
+						]}
+						onPress={handleSave}
+						disabled={!isBalanced || productionStore.isReadOnly}
+						accessibilityLabel={
+							productionStore.isReadOnly
+								? "Modo solo lectura"
+								: isBalanced
+									? "Guardar reporte"
+									: "Reconciliación pendiente"
+						}
+					>
+						<Save size={20} color={colors.onPrimary} />
+					</TouchableOpacity>
 				</View>
 			</View>
-
-			{/* Mobile Section Navigation - only on phone breakpoint */}
-			{isMobile && (
-				<SectionNavigation
-					activeSectionId={activeSectionId}
-					onSectionPress={handleSectionPress}
-					colors={{
-						background: colors.white,
-						primary: colors.primary,
-						text: colors.text,
-						white: colors.white,
-					}}
-				/>
-			)}
 
 			<ScrollView
 				ref={scrollViewRef}
 				style={[styles.content, Platform.OS === "web" && styles.webContent]}
 				contentContainerStyle={styles.contentContainer}
-				onScroll={handleScroll}
-				scrollEventThrottle={16}
 			>
 				{/* Date Selector */}
 				<Animated.View
@@ -665,28 +617,6 @@ export default function ProductionScreen() {
 						border: colors.border,
 					}}
 				/>
-
-				{/* Save Button */}
-				<TouchableOpacity
-					style={[
-						styles.saveButton,
-						{
-							backgroundColor: isBalanced ? colors.success : colors.error,
-							opacity: isBalanced ? 1 : 0.7,
-						},
-					]}
-					onPress={handleSave}
-					disabled={!isBalanced || productionStore.isReadOnly}
-				>
-					<Save size={20} color={colors.onPrimary} />
-					<Text style={[styles.saveButtonText, { color: colors.onPrimary }]}>
-						{productionStore.isReadOnly
-							? "Modo Sólo Lectura"
-							: isBalanced
-								? "Guardar Reporte"
-								: "Reconciliación pendiente"}
-					</Text>
-				</TouchableOpacity>
 			</ScrollView>
 		</SafeAreaView>
 	);
@@ -872,19 +802,6 @@ const styles = StyleSheet.create({
 	},
 	productBadgeText: {
 		...FONTS.body3,
-		fontWeight: "600",
-	},
-	saveButton: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "center",
-		padding: 16,
-		borderRadius: SIZES.radius,
-		marginBottom: 32,
-		gap: 8,
-	},
-	saveButtonText: {
-		...FONTS.body2,
 		fontWeight: "600",
 	},
 });

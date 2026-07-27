@@ -30,7 +30,7 @@ describe('TabletTopNav', () => {
     );
     const json = JSON.stringify(component.toJSON());
     // Check that all 4 tab titles are present
-    expect(json).toContain('Ordenes');
+    expect(json).toContain('Órdenes');
     expect(json).toContain('Nuevo');
     expect(json).toContain('Análisis');
     expect(json).toContain('Ajustes');
