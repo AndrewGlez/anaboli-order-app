@@ -38,6 +38,7 @@ import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { canPrint, printReport } from "@/services/web/productionPrint";
 import { canExport, exportReport } from "@/services/productionExport";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { toast } from "sonner";
 import { VersionHistory } from "@/components/production/VersionHistory";
 import { LegacyFixList } from "@/components/production/LegacyFixList";
 import { DistributionSummary } from "@/components/production/DistributionSummary";
@@ -172,18 +173,28 @@ export default function ProductionScreen() {
 	const handleSave = async () => {
 		// Check if viewing historical version - block save
 		if (productionStore.isReadOnly) {
-			Alert.alert(
-				"Modo Sólo Lectura",
-				"No puedes guardar cambios mientras ves una versión histórica.",
-			);
+			const msg = "No puedes guardar cambios mientras ves una versión histórica.";
+			if (Platform.OS === "web") {
+				toast.error("Modo Sólo Lectura", { description: msg });
+			} else {
+				Alert.alert("Modo Sólo Lectura", msg);
+			}
 			return;
 		}
 
 		const result = productionStore.saveReport(selectedDate, quantities);
 		if (result.ok) {
-			Alert.alert("Éxito", "Reporte guardado correctamente");
+			if (Platform.OS === "web") {
+				toast.success("Reporte guardado correctamente");
+			} else {
+				Alert.alert("Éxito", "Reporte guardado correctamente");
+			}
 		} else {
-			Alert.alert("Error", result.reason);
+			if (Platform.OS === "web") {
+				toast.error("Error al guardar", { description: result.reason });
+			} else {
+				Alert.alert("Error", result.reason);
+			}
 		}
 	};
 
