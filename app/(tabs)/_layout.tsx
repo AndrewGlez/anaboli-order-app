@@ -13,6 +13,7 @@ export default function TabLayout() {
 	// Map pathname to active href
 	const getActiveHref = () => {
 		if (pathname.includes("/production")) return "/production";
+		if (pathname.includes("/gyms")) return "/gyms";
 		if (pathname.includes("/inventory")) return "/inventory";
 		if (pathname.includes("/settings")) return "/settings";
 		return "/";
@@ -33,6 +34,7 @@ export default function TabLayout() {
 					<TabList>
 						<TabTrigger name="index" href="/" />
 						<TabTrigger name="production" href="/production" />
+						<TabTrigger name="gyms" href="/gyms" />
 						<TabTrigger name="inventory" href="/inventory" />
 						<TabTrigger name="settings" href="/settings" />
 					</TabList>
@@ -55,6 +57,7 @@ export default function TabLayout() {
 					<TabList>
 						<TabTrigger name="index" href="/" />
 						<TabTrigger name="production" href="/production" />
+						<TabTrigger name="gyms" href="/gyms" />
 						<TabTrigger name="inventory" href="/inventory" />
 						<TabTrigger name="settings" href="/settings" />
 					</TabList>

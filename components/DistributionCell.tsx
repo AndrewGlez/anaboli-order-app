@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { TextInput, StyleSheet, View, ActivityIndicator, Text } from "react-native";
+import { TextInput, StyleSheet, View, ActivityIndicator } from "react-native";
 import { COLORS, FONTS } from "@/constants/theme";
 import { useThemeStore } from "@/store/themeStore";
 import { useCellEdit } from "@/hooks/useCellEdit";
@@ -10,6 +10,7 @@ interface DistributionCellProps {
   flavor: FlavorCode;
   productType: ProductType;
   date: DateKey;
+  cellWidth?: number;
 }
 
 function DistributionCellInner({
@@ -17,10 +18,11 @@ function DistributionCellInner({
   flavor,
   productType,
   date,
+  cellWidth,
 }: DistributionCellProps) {
   const { theme } = useThemeStore();
   const colors = COLORS.themed(theme);
-  const { value, isSaving, warning, error, commit, rollback } = useCellEdit(
+  const { value, isSaving, warning, error, commit } = useCellEdit(
     gymId,
     flavor,
     productType,
@@ -29,7 +31,6 @@ function DistributionCellInner({
 
   const [text, setText] = useState(value.toString());
   const [isFocused, setIsFocused] = useState(false);
-
   const handleBlur = useCallback(() => {
     setIsFocused(false);
     if (text.trim() === "" || parseInt(text, 10) === value) {
@@ -59,8 +60,13 @@ function DistributionCellInner({
             ? "#f59e0b"
             : hasError
             ? "#ef4444"
+            : isFocused
+            ? colors.primary
             : colors.border,
-          backgroundColor: hasWarning ? "#f59e0b10" : colors.surface,
+          backgroundColor: hasWarning ? "#f59e0b18" : colors.background,
+          borderRadius: 6,
+          borderWidth: isFocused ? 2 : 1,
+          ...(cellWidth != null ? { width: cellWidth - 4 } : { width: 36 }),
         },
       ]}
     >
@@ -90,16 +96,16 @@ function DistributionCellInner({
 
 const styles = StyleSheet.create({
   cell: {
-    width: 40,
-    height: 32,
-    borderWidth: StyleSheet.hairlineWidth,
+    height: 36,
+    borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
+    marginVertical: 2,
   },
   input: {
     width: "100%",
     height: "100%",
-    fontSize: 13,
+    fontSize: 15,
     fontFamily: FONTS.body3.fontFamily,
     padding: 0,
     margin: 0,

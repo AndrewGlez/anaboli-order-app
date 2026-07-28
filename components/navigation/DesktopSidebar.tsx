@@ -43,25 +43,30 @@ function SidebarItem({ item, isActive, colors, onPress }: {
   onPress: () => void;
 }) {
   const [focused, setFocused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const isHighlighted = hovered || focused;
 
   return (
     <Pressable
       style={({ pressed }) => [
         styles.navItem,
         isActive && { backgroundColor: colors.primary + '14' },
+        !isActive && isHighlighted && { backgroundColor: colors.primary + '0A' },
         pressed && styles.pressed,
       ]}
       onPress={onPress}
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       accessibilityRole="link"
       accessibilityState={{ selected: isActive }}
       accessibilityLabel={isActive ? `${item.title} - current page` : item.title}
     >
-      {focused && <View style={[styles.focusIndicator, { backgroundColor: colors.primary }]} />}
+      {isHighlighted && <View style={[styles.focusIndicator, { backgroundColor: colors.primary }]} />}
       <item.icon
         size={20}
-        color={isActive ? colors.sidebarActiveText : colors.sidebarText}
+        color={isActive ? colors.sidebarActiveText : colors.textLight}
       />
       <Text
         style={[
