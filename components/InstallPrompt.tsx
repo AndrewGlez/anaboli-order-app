@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useInstallPrompt } from '@/hooks/useInstallPrompt';
-import { COLORS } from '@/constants/theme';
-import { useThemeStore } from '@/store/themeStore';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useInstallPrompt } from "@/hooks/useInstallPrompt";
+import { COLORS } from "@/constants/theme";
+import { useThemeStore } from "@/store/themeStore";
 
 export function InstallPrompt() {
   const { canInstall, isStandalone, prompt } = useInstallPrompt();
@@ -18,8 +18,8 @@ export function InstallPrompt() {
     if (prompt) {
       await prompt.prompt();
       const { outcome } = await prompt.userChoice;
-      if (outcome === 'accepted') {
-        console.log('User accepted install');
+      if (outcome === "accepted") {
+        console.log("User accepted install");
       }
     }
   };
@@ -27,13 +27,13 @@ export function InstallPrompt() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.text, { color: colors.text }]}>
-        Install this app for a better experience
+        Instala esta app para obtener una mejor experiencia
       </Text>
       <TouchableOpacity
         style={[styles.button, { backgroundColor: colors.primary }]}
         onPress={handleInstall}
       >
-        <Text style={styles.buttonText}>Install App</Text>
+        <Text style={styles.buttonText}>Instalar</Text>
       </TouchableOpacity>
     </View>
   );
@@ -41,15 +41,15 @@ export function InstallPrompt() {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
   text: {
-    fontFamily: 'Montserrat_500Medium',
+    fontFamily: "Montserrat_500Medium",
     fontSize: 14,
     flex: 1,
   },
@@ -60,8 +60,8 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   buttonText: {
-    color: '#ffffff',
-    fontFamily: 'Montserrat_600SemiBold',
+    color: "#ffffff",
+    fontFamily: "Montserrat_600SemiBold",
     fontSize: 14,
   },
 });

@@ -24,6 +24,9 @@ export default function DistributionTotals({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background, borderTopColor: colors.border }]}> 
+      <View style={[styles.flavorTotalCell, { borderRightColor: colors.border }]}> 
+        <Text style={[styles.totalLabel, { color: colors.textLight }]}>TOTAL</Text>
+      </View>
       {/* Gym column totals */}
       {gymIds.map((gymId) => (
         <View key={gymId} style={[styles.gymGroup, cellWidth != null ? { width: cellWidth * PRODUCT_TYPES.length } : undefined]}>
@@ -55,6 +58,18 @@ const styles = StyleSheet.create({
   },
   gymGroup: {
     flexDirection: "row",
+  },
+  flavorTotalCell: {
+    width: 120,
+    height: 36,
+    justifyContent: "center",
+    paddingHorizontal: 10,
+    borderRightWidth: 1,
+  },
+  totalLabel: {
+    fontSize: 12,
+    fontFamily: FONTS.h4.fontFamily,
+    fontWeight: "700",
   },
   cell: {
     width: 40,

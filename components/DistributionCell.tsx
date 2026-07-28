@@ -76,9 +76,11 @@ function DistributionCellInner({
         <TextInput
           style={[
             styles.input,
-            {
+            ({
               color: colors.text,
-            },
+              outlineStyle: "none",
+              outlineWidth: 0,
+            } as any),
           ]}
           value={text}
           onChangeText={setText}
