@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS, FONTS } from "@/constants/theme";
+import { COLORS, FONTS, SIZES } from "@/constants/theme";
 import { useThemeStore } from "@/store/themeStore";
 import { useGymStore } from "@/store/gymStore";
 import { useOrderStore } from "@/store/orderStore";
@@ -16,7 +16,7 @@ import { Gym } from "@/types";
 import GymListItem from "@/components/GymListItem";
 import GymForm from "@/components/GymForm";
 import GymDeleteDialog from "@/components/GymDeleteDialog";
-import { Plus } from "lucide-react-native";
+import { Plus, PlusCircle } from "lucide-react-native";
 
 export default function GymsScreen() {
   const { theme } = useThemeStore();
@@ -42,7 +42,9 @@ export default function GymsScreen() {
 
   if (!hydrated) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
@@ -51,7 +53,9 @@ export default function GymsScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Text style={[styles.title, { color: colors.text }]}>Gimnasios</Text>
         <TouchableOpacity
@@ -144,7 +148,7 @@ const styles = StyleSheet.create({
   addButton: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: SIZES.radius,
     alignItems: "center",
     justifyContent: "center",
   },

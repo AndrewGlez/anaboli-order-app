@@ -1,4 +1,4 @@
-import { Clipboard, Settings, Package, Users } from "lucide-react-native";
+import { Clipboard, Settings, Package, Users, Send } from "lucide-react-native";
 
 export interface TabItem {
 	name: string;
@@ -18,7 +18,7 @@ export const TAB_ITEMS: TabItem[] = [
 		name: "production",
 		href: "/production",
 		title: "Producción",
-		icon: Package,
+		icon: Send,
 	},
 	{
 		name: "gyms",
