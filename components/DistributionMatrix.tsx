@@ -1,14 +1,21 @@
-import React from "react";
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from "react-native";
+import React, { useState, useCallback } from "react";
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, LayoutChangeEvent } from "react-native";
 import { COLORS, FONTS } from "@/constants/theme";
 import { useThemeStore } from "@/store/themeStore";
 import { useDistributionMatrix } from "@/hooks/useDistributionMatrix";
 import { DateKey, ProductType } from "@/types";
-import { FLAVOR_CODES, FLAVOR_COLORS, FlavorCode } from "@/constants/productionCatalog";
+import { FLAVOR_COLORS, FlavorCode } from "@/constants/productionCatalog";
 import DistributionCell from "./DistributionCell";
 import DistributionTotals from "./DistributionTotals";
 
 const PRODUCT_TYPES: ProductType[] = ["A", "GNY", "C", "K"];
+
+const TYPE_COLORS: Record<ProductType, string> = {
+  A: "#4361ee",
+  GNY: "#fb7185",
+  C: "#fb923c",
+  K: "#a78bfa",
+};
 
 interface DistributionMatrixProps {
   selectedDate: DateKey;
@@ -25,6 +32,19 @@ export default function DistributionMatrix({
   const colors = COLORS.themed(theme);
   const matrix = useDistributionMatrix(selectedDate);
   const isLoading = !gymHydrated || !orderHydrated;
+
+  const [viewportWidth, setViewportWidth] = useState(0);
+  const gymCount = matrix.gyms.length;
+  const minimumTableWidth = 120 + gymCount * PRODUCT_TYPES.length * 40 + 50;
+  const canExpand = viewportWidth >= minimumTableWidth;
+  const cellWidth = canExpand
+    ? Math.floor((viewportWidth - 120 - 50) / (gymCount * PRODUCT_TYPES.length))
+    : 40;
+  const tableWidth = Math.max(viewportWidth, minimumTableWidth);
+
+  const handleLayout = useCallback((e: LayoutChangeEvent) => {
+    setViewportWidth(e.nativeEvent.layout.width);
+  }, []);
 
   if (isLoading) {
     return (
@@ -51,17 +71,30 @@ export default function DistributionMatrix({
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
     >
-      <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-        <View>
+      <View onLayout={handleLayout}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+          <View
+            style={[
+              styles.table,
+              {
+                width: tableWidth,
+                backgroundColor: colors.surface,
+                borderRadius: 12,
+                overflow: "hidden",
+                borderWidth: 1,
+                borderColor: colors.border,
+              },
+            ]}
+          >
           {/* Header row: SABOR + gym headers + TOTAL */}
           <View style={[styles.headerRow, { backgroundColor: colors.primary }]}>
             {/* Flavor column header */}
-            <View style={[styles.flavorHeaderCell, { backgroundColor: colors.primary }]}>
+            <View style={[styles.flavorHeaderCell, { backgroundColor: colors.primary, borderRightWidth: 0 }]}>
               <Text style={[styles.headerText, { color: colors.onPrimary }]}>SABOR</Text>
             </View>
             {/* Gym group headers */}
             {matrix.gyms.map((gym) => (
-              <View key={gym.id} style={styles.gymHeaderGroup}>
+              <View key={gym.id} style={[styles.gymHeaderGroup, { width: cellWidth * PRODUCT_TYPES.length }]}>
                 <Text
                   style={[styles.gymHeaderText, { color: colors.onPrimary }]}
                   numberOfLines={1}
@@ -70,8 +103,8 @@ export default function DistributionMatrix({
                 </Text>
                 <View style={styles.subHeaderRow}>
                   {PRODUCT_TYPES.map((pt) => (
-                    <View key={pt} style={styles.subHeaderCell}>
-                      <Text style={[styles.subHeaderText, { color: colors.onPrimary }]}>
+                    <View key={pt} style={[styles.subHeaderCell, { width: cellWidth, borderBottomColor: TYPE_COLORS[pt] }]}> 
+                      <Text style={[styles.subHeaderText, { color: colors.onPrimary }]}> 
                         {pt}
                       </Text>
                     </View>
@@ -80,7 +113,7 @@ export default function DistributionMatrix({
               </View>
             ))}
             {/* Grand total header */}
-            <View style={styles.totalHeaderCell}>
+            <View style={[styles.totalHeaderCell, { borderLeftWidth: 0 }]}>
               <Text style={[styles.headerText, { color: colors.onPrimary }]}>TOTAL</Text>
             </View>
           </View>
@@ -89,10 +122,10 @@ export default function DistributionMatrix({
           {matrix.rows.map((row) => (
             <View
               key={row.flavor}
-              style={[styles.dataRow, { borderBottomColor: colors.border }]}
+              style={[styles.dataRow, { borderBottomColor: colors.border, backgroundColor: colors.surface }]}
             >
               {/* Flavor cell with color indicator */}
-              <View style={[styles.flavorCell, { borderRightColor: colors.border }]}>
+              <View style={[styles.flavorCell, { borderRightColor: colors.border, borderRightWidth: 1 }]}>
                 <View
                   style={[
                     styles.colorDot,
@@ -109,7 +142,7 @@ export default function DistributionMatrix({
 
               {/* Gym cells */}
               {gymIds.map((gymId) => (
-                <View key={gymId} style={styles.gymCellGroup}>
+                <View key={gymId} style={[styles.gymCellGroup, { gap: 2 }]}>
                   {PRODUCT_TYPES.map((pt) => (
                     <DistributionCell
                       key={`${gymId}-${row.flavor}-${pt}`}
@@ -117,13 +150,14 @@ export default function DistributionMatrix({
                       flavor={row.flavor}
                       productType={pt}
                       date={selectedDate}
+                      cellWidth={cellWidth}
                     />
                   ))}
                 </View>
               ))}
 
               {/* Row total */}
-              <View style={styles.rowTotalCell}>
+              <View style={[styles.rowTotalCell, { borderLeftWidth: 1, borderLeftColor: colors.border }]}>
                 <Text style={[styles.rowTotalText, { color: colors.text }]}>
                   {PRODUCT_TYPES.reduce(
                     (sum, pt) => sum + (row.total[pt] ?? 0),
@@ -139,9 +173,11 @@ export default function DistributionMatrix({
             gymTotals={matrix.gymTotals}
             grandTotal={matrix.grandTotal}
             gymIds={gymIds}
+            cellWidth={cellWidth}
           />
-        </View>
-      </ScrollView>
+          </View>
+        </ScrollView>
+      </View>
     </ScrollView>
   );
 }
@@ -152,6 +188,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
+  },
+  table: {
+    minWidth: "100%",
   },
   centered: {
     flex: 1,
@@ -169,22 +208,18 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   flavorHeaderCell: {
-    width: 100,
+    width: 120,
     height: 50,
     justifyContent: "center",
-    paddingHorizontal: 8,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: "rgba(255,255,255,0.3)",
+    paddingHorizontal: 12,
   },
   headerText: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: FONTS.h4.fontFamily,
     fontWeight: "700",
   },
   gymHeaderGroup: {
     alignItems: "center",
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: "rgba(255,255,255,0.3)",
   },
   gymHeaderText: {
     fontSize: 12,
@@ -196,15 +231,17 @@ const styles = StyleSheet.create({
   },
   subHeaderRow: {
     flexDirection: "row",
+    gap: 2,
   },
   subHeaderCell: {
     width: 40,
-    height: 20,
+    height: 22,
     justifyContent: "center",
     alignItems: "center",
+    borderBottomWidth: 3,
   },
   subHeaderText: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: FONTS.body3.fontFamily,
   },
   totalHeaderCell: {
@@ -217,23 +254,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderBottomWidth: StyleSheet.hairlineWidth,
+    minHeight: 40,
   },
   flavorCell: {
-    width: 100,
-    height: 32,
+    width: 120,
+    height: 36,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 6,
-    gap: 4,
-    borderRightWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 10,
+    gap: 6,
   },
   colorDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
+    flexShrink: 0,
   },
   flavorText: {
-    fontSize: 11,
+    fontSize: 13,
     fontFamily: FONTS.body3.fontFamily,
     flex: 1,
   },
@@ -242,12 +280,12 @@ const styles = StyleSheet.create({
   },
   rowTotalCell: {
     width: 50,
-    height: 32,
+    height: 36,
     justifyContent: "center",
     alignItems: "center",
   },
   rowTotalText: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: FONTS.body3.fontFamily,
     fontWeight: "600",
   },
