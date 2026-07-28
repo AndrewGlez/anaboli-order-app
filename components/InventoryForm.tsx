@@ -1,381 +1,591 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Modal,
+	View,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	StyleSheet,
+	Modal,
+	ScrollView,
 } from "react-native";
 import Animated, {
-  FadeInDown,
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  runOnJS,
+	FadeInRight,
+	useSharedValue,
+	useAnimatedStyle,
+	withSpring,
+	withTiming,
 } from "react-native-reanimated";
+import {
+	Wheat,
+	Cookie,
+	WheatOff,
+	Check,
+	ChevronLeft,
+	ChevronRight,
+} from "lucide-react-native";
 import { ProductType } from "@/types";
 import { COLORS, FONTS, SIZES } from "@/constants/theme";
 import { useThemeStore } from "@/store/themeStore";
+import {
+	FLAVOR_CODES,
+	FlavorCode,
+	FLAVOR_COLORS,
+} from "@/constants/productionCatalog";
 
 interface InventoryFormProps {
-  visible: boolean;
-  onClose: () => void;
-  onSave: (data: {
-    name: string;
-    type: ProductType;
-    quantity: number;
-    minThreshold: number;
-    price: number;
-    reason?: string;
-  }) => void;
-  initialData?: {
-    name: string;
-    type: ProductType;
-    quantity: number;
-    minThreshold: number;
-    price: number;
-  };
+	visible: boolean;
+	onClose: () => void;
+	onSave: (data: {
+		name: string;
+		type: ProductType;
+		quantity: number;
+		minThreshold: number;
+		price: number;
+		reason?: string;
+	}) => void;
+	initialData?: {
+		name: string;
+		type: ProductType;
+		quantity: number;
+		minThreshold: number;
+		price: number;
+	};
 }
 
-const PRODUCT_TYPES: { type: ProductType; label: string; color: string }[] = [
-  { type: "A", label: "Avena", color: COLORS.productA },
-  { type: "GNY", label: "Galletas", color: COLORS.productGNY },
-  { type: "C", label: "Cookies", color: COLORS.productC },
-  { type: "K", label: "Ketos", color: COLORS.productK },
+const PRODUCT_TYPES: {
+	type: ProductType;
+	label: string;
+	color: string;
+	Icon: typeof Wheat;
+}[] = [
+	{ type: "A", label: "Avena", color: COLORS.productA, Icon: Wheat },
+	{ type: "GNY", label: "Galletas", color: COLORS.productGNY, Icon: Cookie },
+	{ type: "C", label: "Cookies", color: COLORS.productC, Icon: Cookie },
+	{ type: "K", label: "Ketos", color: COLORS.productK, Icon: WheatOff },
 ];
 
+function parseNameForEdit(
+	name: string,
+): { type: ProductType; flavor: FlavorCode | null } | null {
+	const [typePart, flavorPart] = name.split(" - ");
+	if (!typePart || !flavorPart) return null;
+	const validTypes: ProductType[] = ["A", "GNY", "C", "K"];
+	if (!validTypes.includes(typePart as ProductType)) return null;
+	if (!FLAVOR_CODES.includes(flavorPart as FlavorCode)) return null;
+	return { type: typePart as ProductType, flavor: flavorPart as FlavorCode };
+}
+
+function clearError(errors: Record<string, string>, key: string) {
+	const n = { ...errors };
+	delete n[key];
+	return n;
+}
+
 export function InventoryForm({
-  visible,
-  onClose,
-  onSave,
-  initialData,
+	visible,
+	onClose,
+	onSave,
+	initialData,
 }: InventoryFormProps) {
-  const { theme } = useThemeStore();
-  const colors = COLORS.themed(theme);
+	const { theme } = useThemeStore();
+	const colors = COLORS.themed(theme);
+	const isEdit = !!initialData;
 
-  const [name, setName] = useState(initialData?.name || "");
-  const [type, setType] = useState<ProductType>(initialData?.type || "A");
-  const [quantity, setQuantity] = useState(
-    initialData?.quantity?.toString() || "0"
-  );
-  const [minThreshold, setMinThreshold] = useState(
-    initialData?.minThreshold?.toString() || "0"
-  );
-  const [price, setPrice] = useState(initialData?.price?.toString() || "0");
-  const [reason, setReason] = useState("");
-  const modalScale = useSharedValue(0.82);
-  const overlayOpacity = useSharedValue(0);
+	const [step, setStep] = useState<1 | 2 | 3>(1);
+	const [selectedType, setSelectedType] = useState<ProductType>("A");
+	const [selectedFlavor, setSelectedFlavor] = useState<FlavorCode | null>(null);
+	const [quantity, setQuantity] = useState("0");
+	const [minThreshold, setMinThreshold] = useState("0");
+	const [price, setPrice] = useState("0");
+	const [reason, setReason] = useState("");
+	const [errors, setErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    if (!visible) return;
+	useEffect(() => {
+		if (!visible) return;
+		if (initialData) {
+			const parsed = parseNameForEdit(initialData.name);
+			setSelectedType(parsed?.type ?? initialData.type);
+			setSelectedFlavor(parsed?.flavor ?? null);
+			setQuantity(initialData.quantity?.toString() ?? "0");
+			setMinThreshold(initialData.minThreshold?.toString() ?? "0");
+			setPrice(initialData.price?.toString() ?? "0");
+			setReason("");
+		} else {
+			setStep(1);
+			setSelectedType("A");
+			setSelectedFlavor(null);
+			setQuantity("0");
+			setMinThreshold("0");
+			setPrice("0");
+			setReason("");
+		}
+		setErrors({});
+	}, [visible, initialData]);
 
-    modalScale.value = withSpring(1, { damping: 18, stiffness: 220 });
-    overlayOpacity.value = withTiming(1, { duration: 180 });
-  }, [visible, modalScale, overlayOpacity]);
+	const modalScale = useSharedValue(0.82);
+	const overlayOpacity = useSharedValue(0);
+	useEffect(() => {
+		if (!visible) return;
+		modalScale.value = withSpring(1, { damping: 18, stiffness: 220 });
+		overlayOpacity.value = withTiming(1, { duration: 180 });
+	}, [visible, modalScale, overlayOpacity]);
 
-  const modalAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: modalScale.value }],
-  }));
+	const modalAnimatedStyle = useAnimatedStyle(() => ({
+		transform: [{ scale: modalScale.value }],
+	}));
+	const overlayAnimatedStyle = useAnimatedStyle(() => ({
+		opacity: overlayOpacity.value,
+	}));
 
-  const overlayAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: overlayOpacity.value,
-  }));
+	const generatedName = useMemo(() => {
+		if (!selectedFlavor) return "";
+		return `${selectedType} - ${selectedFlavor}`;
+	}, [selectedType, selectedFlavor]);
 
-  const handleSave = () => {
-    const qty = parseInt(quantity, 10);
-    const min = parseInt(minThreshold, 10);
-    const prc = parseFloat(price);
+	const validateStep = (s: number): boolean => {
+		const e: Record<string, string> = {};
+		if (s === 1 && !selectedType) e.type = "Seleccioná un tipo";
+		if (s === 2 && !selectedFlavor) e.flavor = "Seleccioná un sabor";
+		if (s === 3) {
+			const q = parseInt(quantity, 10),
+				m = parseInt(minThreshold, 10),
+				p = parseFloat(price);
+			if (isNaN(q) || q < 0) e.quantity = "Cantidad inválida";
+			if (isNaN(m) || m < 0) e.minThreshold = "Stock mínimo inválido";
+			if (isNaN(p) || p < 0) e.price = "Precio inválido";
+			if (isEdit && !reason.trim()) e.reason = "La razón es requerida";
+		}
+		setErrors(e);
+		return Object.keys(e).length === 0;
+	};
 
-    if (isNaN(qty) || qty < 0) return;
-    if (isNaN(min) || min < 0) return;
-    if (isNaN(prc) || prc < 0) return;
+	const goNext = () => {
+		if (step < 3 && validateStep(step)) {
+			setStep((step + 1) as 1 | 2 | 3);
+			setErrors({});
+		} else if (step === 3) handleSave();
+	};
+	const goBack = () => {
+		if (step > 1) {
+			setStep((step - 1) as 1 | 2 | 3);
+			setErrors({});
+		}
+	};
 
-    onSave({
-      name,
-      type,
-      quantity: qty,
-      minThreshold: min,
-      price: prc,
-      ...(initialData && reason ? { reason } : {}),
-    });
+	const handleSave = () => {
+		if (!validateStep(3)) return;
+		onSave({
+			name: generatedName,
+			type: selectedType,
+			quantity: parseInt(quantity, 10),
+			minThreshold: parseInt(minThreshold, 10),
+			price: parseFloat(price),
+			...(isEdit && reason ? { reason } : {}),
+		});
+		onClose();
+	};
 
-    // Reset form
-    setName("");
-    setType("A");
-    setQuantity("0");
-    setMinThreshold("0");
-    setPrice("0");
-    setReason("");
-    onClose();
-  };
+	const handleCancel = () => {
+		setStep(1);
+		setSelectedType("A");
+		setSelectedFlavor(null);
+		setQuantity("0");
+		setMinThreshold("0");
+		setPrice("0");
+		setReason("");
+		setErrors({});
+		onClose();
+	};
 
-  return (
-    <Modal visible={visible} animationType="none" transparent>
-      <Animated.View style={[styles.overlay, overlayAnimatedStyle]}>
-        <Animated.View
-          style={[
-            styles.container,
-            { backgroundColor: colors.white, borderColor: colors.border },
-            modalAnimatedStyle,
-          ]}
-        >
-          <Text style={[styles.title, { color: colors.text }]}>
-            {initialData ? "Editar Item" : "Agregar Item"}
-          </Text>
+	const inputStyle = (hasError: boolean) => [
+		styles.input,
+		{
+			backgroundColor: colors.white,
+			borderColor: hasError ? colors.error : colors.border,
+			color: colors.text,
+		},
+	];
 
-          <Animated.View
-            style={styles.formGroup}
-            entering={FadeInDown.delay(0).springify()}
-          >
-            <Text style={[styles.label, { color: colors.text }]}>Nombre</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.white,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
-              value={name}
-              onChangeText={setName}
-              placeholder="Nombre del item"
-              placeholderTextColor={colors.textLight}
-            />
-          </Animated.View>
+	return (
+		<Modal visible={visible} animationType="none" transparent>
+			<Animated.View style={[styles.overlay, overlayAnimatedStyle]}>
+				<Animated.View
+					style={[
+						styles.container,
+						{ backgroundColor: colors.white, borderColor: colors.border },
+						modalAnimatedStyle,
+					]}
+				>
+					{/* Progress bar */}
+					<View
+						style={[styles.progressTrack, { backgroundColor: colors.border }]}
+					>
+						<Animated.View
+							style={[
+								styles.progressFill,
+								{
+									backgroundColor: colors.primary,
+									width: `${(step / 3) * 100}%`,
+								},
+							]}
+						/>
+					</View>
 
-          <Animated.View
-            style={styles.formGroup}
-            entering={FadeInDown.delay(50).springify()}
-          >
-            <Text style={[styles.label, { color: colors.text }]}>Tipo</Text>
-            <View style={styles.typeContainer}>
-              {PRODUCT_TYPES.map((p) => (
-                <TouchableOpacity
-                  key={p.type}
-                  style={[
-                    styles.typeButton,
-                    {
-                      borderColor:
-                        type === p.type ? p.color : colors.border,
-                      backgroundColor:
-                        type === p.type ? p.color + "15" : "transparent",
-                    },
-                  ]}
-                  onPress={() => setType(p.type)}
-                >
-                  <Text
-                    style={[
-                      styles.typeButtonText,
-                      {
-                        color:
-                          type === p.type ? p.color : colors.textLight,
-                      },
-                    ]}
-                  >
-                    {p.type}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </Animated.View>
+					<Text style={[styles.title, { color: colors.text }]}>
+						{isEdit ? "Editar Item" : "Agregar Item"}
+					</Text>
 
-          <Animated.View
-            style={styles.formGroup}
-            entering={FadeInDown.delay(100).springify()}
-          >
-            <Text style={[styles.label, { color: colors.text }]}>Cantidad</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.white,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
-              value={quantity}
-              onChangeText={setQuantity}
-              keyboardType="numeric"
-              placeholder="0"
-              placeholderTextColor={colors.textLight}
-            />
-          </Animated.View>
+					<ScrollView
+						style={styles.stepContainer}
+						contentContainerStyle={styles.stepContent}
+					>
+						{step === 1 && (
+							<Animated.View key="s1" entering={FadeInRight.duration(250)}>
+								<Text style={[styles.stepLabel, { color: colors.textLight }]}>
+									Tipo de producto
+								</Text>
+								<View style={styles.typeGrid}>
+									{PRODUCT_TYPES.map((p) => {
+										const sel = selectedType === p.type;
+										return (
+											<TouchableOpacity
+												key={p.type}
+												style={[
+													styles.typeCard,
+													{
+														borderColor: sel ? p.color : colors.border,
+														backgroundColor: sel
+															? p.color + "15"
+															: "transparent",
+                          transform: [{ scale: 1 }],
+													},
+												]}
+												onPress={() => {
+													setSelectedType(p.type);
+													setErrors(clearError(errors, "type"));
+												}}
+											>
+												{sel && (
+													<View
+														style={[
+															styles.checkBadge,
+															{ backgroundColor: p.color },
+														]}
+													>
+														<Check size={14} color="#fff" />
+													</View>
+												)}
+												<p.Icon
+													size={48}
+													color={sel ? p.color : colors.textLight}
+												/>
+												<Text
+													style={[
+														styles.typeCardLabel,
+														{ color: sel ? p.color : colors.textLight },
+													]}
+												>
+													{p.type}
+												</Text>
+												<Text
+													style={[
+														styles.typeCardSub,
+														{ color: sel ? p.color : colors.textLight },
+													]}
+												>
+													{p.label}
+												</Text>
+											</TouchableOpacity>
+										);
+									})}
+								</View>
+								{errors.type && (
+									<Text style={[styles.error, { color: colors.error }]}>
+										{errors.type}
+									</Text>
+								)}
+							</Animated.View>
+						)}
 
-          <Animated.View
-            style={styles.formGroup}
-            entering={FadeInDown.delay(150).springify()}
-          >
-            <Text style={[styles.label, { color: colors.text }]}>
-              Stock mínimo
-            </Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.white,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
-              value={minThreshold}
-              onChangeText={setMinThreshold}
-              keyboardType="numeric"
-              placeholder="0"
-              placeholderTextColor={colors.textLight}
-            />
-          </Animated.View>
+						{step === 2 && (
+							<Animated.View key="s2" entering={FadeInRight.duration(250)}>
+								<Text style={[styles.stepLabel, { color: colors.textLight }]}>
+									Seleccioná un sabor
+								</Text>
+								<View style={styles.flavorGrid}>
+									{FLAVOR_CODES.map((flavor) => {
+										const sel = selectedFlavor === flavor;
+										const fc = FLAVOR_COLORS[flavor];
+										return (
+											<TouchableOpacity
+												key={flavor}
+												style={[
+													styles.flavorCard,
+													{
+														borderColor: sel ? fc : colors.border,
+														backgroundColor: sel ? fc + "20" : colors.surface,
+													},
+												]}
+												onPress={() => {
+													setSelectedFlavor(flavor);
+													setErrors(clearError(errors, "flavor"));
+												}}
+											>
+												<View
+													style={[styles.flavorDot, { backgroundColor: fc }]}
+												/>
+												<Text
+													style={[
+														styles.flavorText,
+														{ color: sel ? fc : colors.text },
+													]}
+													numberOfLines={2}
+												>
+													{flavor}
+												</Text>
+												{sel && (
+													<Check
+														size={16}
+														color={fc}
+														style={styles.flavorCheck}
+													/>
+												)}
+											</TouchableOpacity>
+										);
+									})}
+								</View>
+								{errors.flavor && (
+									<Text style={[styles.error, { color: colors.error }]}>
+										{errors.flavor}
+									</Text>
+								)}
+							</Animated.View>
+						)}
 
-          <Animated.View
-            style={styles.formGroup}
-            entering={FadeInDown.delay(200).springify()}
-          >
-            <Text style={[styles.label, { color: colors.text }]}>Precio</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.white,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
-              value={price}
-              onChangeText={setPrice}
-              keyboardType="numeric"
-              placeholder="0"
-              placeholderTextColor={colors.textLight}
-            />
-          </Animated.View>
+						{step === 3 && (
+							<Animated.View key="s3" entering={FadeInRight.duration(250)}>
+								<Text style={[styles.stepLabel, { color: colors.textLight }]}>
+									Stock y precio
+								</Text>
+								<Text style={[styles.previewName, { color: colors.text }]}>
+									{generatedName}
+								</Text>
 
-          {initialData && (
-            <Animated.View
-              style={styles.formGroup}
-              entering={FadeInDown.delay(250).springify()}
-            >
-              <Text style={[styles.label, { color: colors.text }]}>
-                Razón (requerido para ediciones)
-              </Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: colors.white,
-                    borderColor: colors.border,
-                    color: colors.text,
-                  },
-                ]}
-                value={reason}
-                onChangeText={setReason}
-                placeholder="Razón del cambio"
-                placeholderTextColor={colors.textLight}
-              />
-            </Animated.View>
-          )}
+								{[
+									{
+										label: "Cantidad",
+										value: quantity,
+										set: setQuantity,
+										key: "quantity",
+									},
+									{
+										label: "Stock mínimo",
+										value: minThreshold,
+										set: setMinThreshold,
+										key: "minThreshold",
+									},
+									{
+										label: "Precio",
+										value: price,
+										set: setPrice,
+										key: "price",
+									},
+								].map(({ label, value, set, key }) => (
+									<View key={key}>
+										<Text style={[styles.label, { color: colors.text }]}>
+											{label}
+										</Text>
+										<TextInput
+											style={inputStyle(!!errors[key])}
+											value={value}
+											onChangeText={(t) => {
+												set(t);
+												setErrors(clearError(errors, key));
+											}}
+											keyboardType="numeric"
+											placeholder="0"
+											placeholderTextColor={colors.textLight}
+										/>
+										{errors[key] && (
+											<Text style={[styles.error, { color: colors.error }]}>
+												{errors[key]}
+											</Text>
+										)}
+									</View>
+								))}
 
-          <Animated.View
-            style={styles.buttons}
-            entering={FadeInDown.delay(300).springify()}
-          >
-            <TouchableOpacity
-              style={[styles.cancelButton, { borderColor: colors.border }]}
-              onPress={onClose}
-            >
-              <Text style={[styles.cancelButtonText, { color: colors.textLight }]}>
-                Cancelar
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.saveButton,
-                { backgroundColor: colors.primary },
-                initialData && !reason && { backgroundColor: colors.border },
-              ]}
-              onPress={handleSave}
-              disabled={!!initialData && !reason}
-            >
-              <Text style={styles.saveButtonText}>Guardar</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </Animated.View>
-      </Animated.View>
-    </Modal>
-  );
+								{isEdit && (
+									<>
+										<Text style={[styles.label, { color: colors.text }]}>
+											Razón (requerido)
+										</Text>
+										<TextInput
+											style={inputStyle(!!errors.reason)}
+											value={reason}
+											onChangeText={(t) => {
+												setReason(t);
+												setErrors(clearError(errors, "reason"));
+											}}
+											placeholder="Razón del cambio"
+											placeholderTextColor={colors.textLight}
+										/>
+										{errors.reason && (
+											<Text style={[styles.error, { color: colors.error }]}>
+												{errors.reason}
+											</Text>
+										)}
+									</>
+								)}
+							</Animated.View>
+						)}
+					</ScrollView>
+
+					{/* Navigation */}
+					<View style={styles.buttons}>
+						<TouchableOpacity
+							style={[styles.btnOutline, { borderColor: colors.border }]}
+							onPress={handleCancel}
+						>
+							<Text
+								style={[styles.btnOutlineText, { color: colors.textLight }]}
+							>
+								Cancelar
+							</Text>
+						</TouchableOpacity>
+						{step > 1 && (
+							<TouchableOpacity
+								style={[styles.btnOutline, { borderColor: colors.border }]}
+								onPress={goBack}
+							>
+								<ChevronLeft size={16} color={colors.textLight} />
+								<Text
+									style={[styles.btnOutlineText, { color: colors.textLight }]}
+								>
+									Atrás
+								</Text>
+							</TouchableOpacity>
+						)}
+						<TouchableOpacity
+							style={[styles.btnPrimary, { backgroundColor: colors.primary }]}
+							onPress={goNext}
+						>
+							<Text style={styles.btnPrimaryText}>
+								{step === 3 ? "Guardar" : "Siguiente"}
+							</Text>
+							{step < 3 && <ChevronRight size={16} color="#fff" />}
+						</TouchableOpacity>
+					</View>
+				</Animated.View>
+			</Animated.View>
+		</Modal>
+	);
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    borderRadius: SIZES.radius * 2,
-    padding: SIZES.padding + 4,
-    width: "90%",
-    maxWidth: 420,
-    borderWidth: 1,
-  },
-  title: {
-    ...FONTS.h2,
-    marginBottom: 16,
-  },
-  formGroup: {
-    marginBottom: 4,
-  },
-  label: {
-    ...FONTS.body2,
-    fontWeight: "600",
-    marginBottom: 4,
-    marginTop: 12,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: SIZES.radius,
-    padding: 12,
-    ...FONTS.body1,
-  },
-  typeContainer: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  typeButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: SIZES.radius,
-    borderWidth: 1,
-  },
-  typeButtonText: {
-    ...FONTS.body2,
-    fontWeight: "600",
-  },
-  buttons: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 12,
-    marginTop: 20,
-  },
-  cancelButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: SIZES.radius,
-    borderWidth: 1,
-  },
-  cancelButtonText: {
-    ...FONTS.body2,
-    fontWeight: "600",
-  },
-  saveButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: SIZES.radius,
-  },
-  saveButtonText: {
-    color: COLORS.white,
-    ...FONTS.body2,
-    fontWeight: "600",
-  },
+	overlay: {
+		flex: 1,
+		backgroundColor: "rgba(0,0,0,0.5)",
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	container: {
+		borderRadius: SIZES.radius * 2,
+		padding: SIZES.padding + 4,
+		width: "90%",
+		maxWidth: 420,
+		borderWidth: 1,
+		maxHeight: "85%",
+	},
+	progressTrack: {
+		height: 3,
+		borderRadius: 2,
+		marginBottom: 12,
+		overflow: "hidden",
+	},
+	progressFill: { height: "100%", borderRadius: 2 },
+	title: { ...FONTS.h2, marginBottom: 4 },
+	stepContainer: { maxHeight: 360 },
+	stepContent: { paddingBottom: 8 },
+	stepLabel: { ...FONTS.body3, marginBottom: 12 },
+	// Type cards
+	typeGrid: {
+		flexDirection: "row",
+		flexWrap: "wrap",
+		justifyContent: "space-between",
+		rowGap: 10,
+	},
+	typeCard: {
+		width: "48%",
+		aspectRatio: 1,
+		borderWidth: 2,
+		borderRadius: SIZES.radius * 1.5,
+		justifyContent: "center",
+		alignItems: "center",
+		padding: 6,
+	},
+	checkBadge: {
+		position: "absolute",
+		top: 8,
+		right: 8,
+		width: 22,
+		height: 22,
+		borderRadius: 11,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	typeCardLabel: { ...FONTS.h3, marginTop: 6 },
+	typeCardSub: { ...FONTS.body3, marginTop: 2 },
+	// Flavor grid
+	flavorGrid: {
+		flexDirection: "row",
+		flexWrap: "wrap",
+		justifyContent: "space-between",
+		rowGap: 8,
+	},
+	flavorCard: {
+		width: "31%",
+		aspectRatio: 1,
+		borderWidth: 1.5,
+		borderRadius: SIZES.radius,
+		justifyContent: "center",
+		alignItems: "center",
+		padding: 4,
+	},
+	flavorDot: { width: 14, height: 14, borderRadius: 7, marginBottom: 4 },
+	flavorText: { ...FONTS.body3, fontWeight: "500", textAlign: "center" },
+	flavorCheck: { position: "absolute", top: 4, right: 4 },
+	// Step 3
+	previewName: { ...FONTS.h3, marginBottom: 16 },
+	label: { ...FONTS.body2, fontWeight: "600", marginBottom: 4, marginTop: 10 },
+	input: {
+		borderWidth: 1,
+		borderRadius: SIZES.radius,
+		padding: 12,
+		...FONTS.body1,
+	},
+	error: { ...FONTS.body3, marginTop: 4 },
+	// Buttons
+	buttons: {
+		flexDirection: "row",
+		justifyContent: "flex-end",
+		gap: 8,
+		marginTop: 16,
+	},
+	btnOutline: {
+		flexDirection: "row",
+		alignItems: "center",
+		paddingHorizontal: 14,
+		paddingVertical: 10,
+		borderRadius: SIZES.radius,
+		borderWidth: 1,
+	},
+	btnOutlineText: { ...FONTS.body2, fontWeight: "600" },
+	btnPrimary: {
+		flexDirection: "row",
+		alignItems: "center",
+		paddingHorizontal: 14,
+		paddingVertical: 10,
+		borderRadius: SIZES.radius,
+	},
+	btnPrimaryText: { color: COLORS.white, ...FONTS.body2, fontWeight: "600" },
 });

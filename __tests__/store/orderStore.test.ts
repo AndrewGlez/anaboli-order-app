@@ -51,6 +51,7 @@ describe("orderStore inventory sync", () => {
 
       const order: Order = {
         id: "order-1",
+        gymId: "",
         gymName: "Gym Alpha",
         products: [{ type: "GNY", quantity: 3 }],
         status: "Entregado",
@@ -74,6 +75,7 @@ describe("orderStore inventory sync", () => {
 
       const order: Order = {
         id: "order-1",
+        gymId: "",
         gymName: "Gym Alpha",
         products: [{ type: "GNY", quantity: 1 }],
         status: "Entregado",
@@ -100,7 +102,7 @@ describe("orderStore inventory sync", () => {
             minThreshold: 2,
             price: 50,
             updatedAt: new Date().toISOString(),
-            lastAdjustmentReason: "order:create",
+            lastAdjustmentReason: "initial",
           },
         ],
       });
@@ -108,6 +110,7 @@ describe("orderStore inventory sync", () => {
       // Add an order first
       const order: Order = {
         id: "order-1",
+        gymId: "",
         gymName: "Gym Alpha",
         products: [{ type: "GNY", quantity: 3 }],
         status: "Entregado",
@@ -143,6 +146,7 @@ describe("orderStore inventory sync", () => {
 
       const order: Order = {
         id: "order-1",
+        gymId: "",
         gymName: "Gym Alpha",
         products: [{ type: "GNY", quantity: 3 }],
         status: "Entregado",
@@ -165,6 +169,7 @@ describe("orderStore inventory sync", () => {
 
       const order: Order = {
         id: "order-1",
+        gymId: "",
         gymName: "Gym Alpha",
         products: [{ type: "GNY", quantity: 3 }],
         status: "Entregado",
@@ -191,7 +196,7 @@ describe("orderStore inventory sync", () => {
             minThreshold: 2,
             price: 50,
             updatedAt: new Date().toISOString(),
-            lastAdjustmentReason: "order:create",
+            lastAdjustmentReason: "initial",
           },
         ],
       });
@@ -199,6 +204,7 @@ describe("orderStore inventory sync", () => {
       // Add an order first
       const order: Order = {
         id: "order-1",
+        gymId: "",
         gymName: "Gym Alpha",
         products: [{ type: "GNY", quantity: 3 }],
         status: "Entregado",
@@ -240,6 +246,7 @@ describe("orderStore inventory sync", () => {
       // Add an order consuming 2
       const order: Order = {
         id: "order-1",
+        gymId: "",
         gymName: "Gym Alpha",
         products: [{ type: "GNY", quantity: 2 }],
         status: "Entregado",
@@ -286,6 +293,7 @@ describe("orderStore inventory sync", () => {
       // Add an order
       const order: Order = {
         id: "order-1",
+        gymId: "",
         gymName: "Gym Alpha",
         products: [{ type: "GNY", quantity: 3 }],
         status: "Entregado",
@@ -325,6 +333,103 @@ describe("orderStore inventory sync", () => {
       useOrderStore.getState().deleteOrder("missing-id");
 
       expect(useInventoryStore.getState().items[0].quantity).toBe(10);
+    });
+  });
+
+  describe("addOrderDistributable", () => {
+    it("creates order and decrements inventory normally", () => {
+      useInventoryStore.setState({
+        items: [
+          {
+            id: "inv-1",
+            name: "Whey",
+            type: "GNY",
+            quantity: 10,
+            minThreshold: 2,
+            price: 50,
+            updatedAt: new Date().toISOString(),
+            lastAdjustmentReason: "initial",
+          },
+        ],
+      });
+
+      const order: Order = {
+        id: "order-dist-1",
+        gymId: "gym-1",
+        gymName: "Gym Alpha",
+        products: [{ type: "GNY", quantity: 3 }],
+        status: "Entregado",
+        flavor: "Apple Pie",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const result = useOrderStore.getState().addOrderDistributable(order);
+      expect(result.ok).toBe(true);
+      expect(useOrderStore.getState().orders).toHaveLength(1);
+      expect(useOrderStore.getState().orders[0].gymId).toBe("gym-1");
+      expect(useInventoryStore.getState().items[0].quantity).toBe(7);
+    });
+
+    it("returns warning when stock insufficient but persists order", () => {
+      useInventoryStore.setState({
+        items: [
+          {
+            id: "inv-1",
+            name: "Whey",
+            type: "GNY",
+            quantity: 2,
+            minThreshold: 1,
+            price: 50,
+            updatedAt: new Date().toISOString(),
+            lastAdjustmentReason: "initial",
+          },
+        ],
+      });
+
+      const order: Order = {
+        id: "order-dist-2",
+        gymId: "gym-1",
+        gymName: "Gym Beta",
+        products: [{ type: "GNY", quantity: 5 }],
+        status: "Entregado",
+        flavor: "Berry Lover",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const result = useOrderStore.getState().addOrderDistributable(order);
+      expect(result.ok).toBe(true);
+      // Order IS persisted despite insufficient stock
+      expect(useOrderStore.getState().orders).toHaveLength(1);
+      expect(useOrderStore.getState().orders[0].id).toBe("order-dist-2");
+      // Only available amount consumed
+      expect(useInventoryStore.getState().items[0].quantity).toBe(0);
+      // Warning is returned
+      expect(result.ok && result.warning).toBeDefined();
+      if (result.ok && result.warning) {
+        expect(result.warning.productType).toBe("GNY");
+        expect(result.warning.shortfall).toBe(3);
+      }
+    });
+
+    it("short-circuits when inventory is not hydrated", () => {
+      useInventoryStore.setState({ hydrated: false });
+
+      const order: Order = {
+        id: "order-dist-3",
+        gymId: "gym-1",
+        gymName: "Gym",
+        products: [{ type: "GNY", quantity: 1 }],
+        status: "Entregado",
+        flavor: "Apple Pie",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const result = useOrderStore.getState().addOrderDistributable(order);
+      expect(result.ok).toBe(false);
+      expect(useOrderStore.getState().orders).toHaveLength(0);
     });
   });
 });

@@ -12,9 +12,11 @@ jest.mock("react-native", () => {
 		View: "View",
 		Text: "Text",
 		ScrollView: "ScrollView",
+		TextInput: "TextInput",
 		Pressable: "Pressable",
 		TouchableOpacity: "TouchableOpacity",
 		ActivityIndicator: "ActivityIndicator",
+		Modal: "Modal",
 		Alert: { alert: jest.fn() },
 		Linking: { openURL: jest.fn() },
 		Dimensions: {

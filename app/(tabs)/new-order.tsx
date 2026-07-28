@@ -8,16 +8,10 @@ import {
   ScrollView,
   Alert,
   Platform,
-  Pressable,
 } from "react-native";
 import Animated, {
   FadeInDown,
-  FadeIn,
-  FadeOut,
   Layout,
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
   SlideInRight,
   SlideOutRight,
 } from "react-native-reanimated";
@@ -26,6 +20,7 @@ import { ArrowLeft, PlusCircle, Trash2 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { COLORS, FONTS, SIZES } from "@/constants/theme";
 import { useOrderStore } from "@/store/orderStore";
+import { useGymCatalog } from "@/hooks/useGymCatalog";
 import { ProductType, OrderStatus, Gasto, FlavorCode } from "@/types";
 import { FLAVOR_CODES } from "@/constants/productionCatalog";
 import ProductSelector from "@/components/ProductSelector";
@@ -44,7 +39,7 @@ const orderFormSchema = z.object({
   ).min(1, "Agrega al menos un producto").max(50, "No puedes agregar más de 50 productos"),
   status: z.enum(["Entregado", "Entregado + P", "Entregado + TRF"]),
   notes: z.string().max(1000, "Las notas son demasiado largas"),
-  flavor: z.enum(FLAVOR_CODES as [FlavorCode, ...FlavorCode[]], "Selecciona un sabor"),
+  flavor: z.enum(FLAVOR_CODES as unknown as [FlavorCode, ...FlavorCode[]], "Selecciona un sabor"),
   price: z.string().trim().refine(
     (value) => value === "" || /^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(value),
     "El precio debe ser un número válido con hasta 2 decimales"
@@ -57,18 +52,19 @@ const orderFormSchema = z.object({
   ).max(50, "No puedes agregar más de 50 gastos"),
 });
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function NewOrderScreen() {
   const router = useRouter();
   const { addOrder, addGasto } = useOrderStore();
   const { theme } = useThemeStore();
+  const { gyms: activeGyms } = useGymCatalog();
 
   const colors = COLORS.themed(theme);
 
+  const [selectedGymId, setSelectedGymId] = useState("");
   const [gymName, setGymName] = useState("");
   const [products, setProducts] = useState<
-    Array<{ type: ProductType; quantity: number }>
+    { type: ProductType; quantity: number }[]
   >([]);
   const [status, setStatus] = useState<OrderStatus>("Entregado");
   const [notes, setNotes] = useState("");
@@ -77,7 +73,7 @@ export default function NewOrderScreen() {
   const [flavorError, setFlavorError] = useState<string | null>(null);
 
   // Gastos (expenses) state
-  const [gastos, setGastos] = useState<Array<{ name: string; price: string }>>(
+  const [gastos, setGastos] = useState<{ name: string; price: string }[]>(
     []
   );
 
@@ -158,11 +154,12 @@ export default function NewOrderScreen() {
 
     const newOrder = {
       id: Date.now().toString(),
+      gymId: selectedGymId || "",
       gymName,
       products,
       status,
       notes,
-      flavor,
+      flavor: flavor as FlavorCode,
       ...(price ? { price: parseFloat(price) } : {}),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -219,6 +216,7 @@ export default function NewOrderScreen() {
     Alert.alert("Éxito", "Orden creada con éxito");
 
     // Reset form
+    setSelectedGymId("");
     setGymName("");
     setProducts([]);
     setStatus("Entregado");
@@ -252,7 +250,36 @@ export default function NewOrderScreen() {
           style={styles.formGroup}
           entering={FadeInDown.delay(100).springify()}
         >
-          <Text style={[styles.label, { color: colors.text }]}>Nombre</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Gimnasio</Text>
+          {activeGyms.length > 0 ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.gymSelector}>
+              {activeGyms.map((gym) => (
+                <TouchableOpacity
+                  key={gym.id}
+                  style={[
+                    styles.gymOption,
+                    {
+                      backgroundColor: selectedGymId === gym.id ? colors.primary : colors.white,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  onPress={() => {
+                    setSelectedGymId(gym.id);
+                    setGymName(gym.name);
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: selectedGymId === gym.id ? colors.white : colors.text,
+                      fontSize: 14,
+                    }}
+                  >
+                    {gym.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          ) : null}
           <TextInput
             style={[
               styles.input,
@@ -263,8 +290,11 @@ export default function NewOrderScreen() {
               },
             ]}
             value={gymName}
-            onChangeText={setGymName}
-            placeholder="Ingresa el nombre del gym"
+            onChangeText={(text) => {
+              setGymName(text);
+              setSelectedGymId("");
+            }}
+            placeholder="O escribe el nombre del gym"
             placeholderTextColor={colors.textLight}
           />
         </Animated.View>
@@ -617,5 +647,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginRight: 8,
     marginBottom: 8,
+  },
+  gymSelector: {
+    marginBottom: 8,
+  },
+  gymOption: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    marginRight: 8,
   },
 });
